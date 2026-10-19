@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
@@ -38,7 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -54,7 +52,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.robotcentinela.app.R
 import com.robotcentinela.app.environmentalmonitoring.domain.ChannelKey
 import com.robotcentinela.app.identity.domain.HomeScope
@@ -66,7 +63,6 @@ import com.robotcentinela.app.ui.events.AlertDetailSheet
 import com.robotcentinela.app.ui.events.EventsScreen
 import com.robotcentinela.app.ui.history.HistoryScreen
 import com.robotcentinela.app.ui.map.MapScreen
-import com.robotcentinela.app.ui.missions.MissionDetailScreen
 import com.robotcentinela.app.ui.missions.MissionsScreen
 import com.robotcentinela.app.ui.model.OperationPresentation
 import com.robotcentinela.app.ui.settings.SettingsSheet
@@ -89,24 +85,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object EventsRoute
 
-@Serializable data class MissionDetailRoute(val missionId: String)
 
-/** Destinos de la barra de navegación (propuesta: Resumen, Mapa, Misiones, Historial y Eventos). */
+/** Destinos de la barra de navegación (mockup móvil: Resumen, Mapa, Misiones e Historial). Eventos se abre con la campana. */
 private enum class Tab(val label: String, val icon: Int, val route: Any) {
     Summary("Resumen", R.drawable.ic_assignment, SummaryRoute),
-    MapTab("Mapa", R.drawable.ic_location_on, MapRoute),
-    Missions("Misiones", R.drawable.ic_route, MissionsRoute),
+    MapTab("Mapa", R.drawable.ic_map, MapRoute),
+    Missions("Misiones", R.drawable.ic_edit_road, MissionsRoute),
     History("Historial", R.drawable.ic_history, HistoryRoute),
-    Events("Eventos", R.drawable.ic_event_available, EventsRoute),
 }
 
 @Composable
-fun MainScreen(
-    scope: HomeScope,
-    sessionWarning: Boolean,
-    onChangeHome: () -> Unit,
-    onSignOut: () -> Unit,
-) {
+fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
     val deps = uiDependencies
     val vm: MainViewModel = viewModel(key = "main-${scope.home.id.value}") { MainViewModel(deps.container, scope) }
     val live by vm.state.collectAsStateWithLifecycle()
@@ -122,7 +111,6 @@ fun MainScreen(
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var selectedChannel by remember { mutableStateOf<ChannelKey?>(null) }
     var selectedAlert by remember { mutableStateOf<Alert?>(null) }
-    val greeting = deps.preferences.displayName()
 
     BoxWithConstraints(Modifier.fillMaxSize().background(colors.background)) {
         val wide = maxWidth >= 840.dp
@@ -134,7 +122,6 @@ fun MainScreen(
                 contentWindowInsets = if (wide || live.robot == null) WindowInsets.navigationBars else WindowInsets(0, 0, 0, 0),
                 topBar = {
                     Header(
-                        greeting = greeting,
                         homeName = scope.home.name,
                         robotCode = live.robot?.publicCode,
                         robots = live.robots.map { it.publicCode },
@@ -147,14 +134,6 @@ fun MainScreen(
                 bottomBar = { if (!wide && live.robot != null) BottomBar(navController) },
             ) { padding ->
                 Column(Modifier.padding(padding).fillMaxSize()) {
-                    if (sessionWarning) {
-                        Banner(
-                            text = "No se pudo renovar tu sesión. Algunas consultas pueden fallar hasta que vuelvas a iniciar sesión.",
-                            actionLabel = "Iniciar sesión",
-                            onAction = onSignOut,
-                            critical = false,
-                        )
-                    }
                     live.bannerAlert?.let { alert ->
                         Banner(
                             text = "${OperationPresentation.severity(alert.severity).text}: ${OperationPresentation.alertTitle(alert.type)}",
@@ -166,7 +145,7 @@ fun MainScreen(
                     }
                     if (live.robot == null) {
                         EmptyState(
-                            icon = R.drawable.ic_smart_toy,
+                            icon = R.drawable.ic_info,
                             title = "Este domicilio no tiene robot",
                             message = "No hay un robot vinculado a ${scope.home.name}. Cuando se vincule uno, aquí verás " +
                                 "sus lecturas, su posición estimada y sus eventos.",
@@ -192,7 +171,6 @@ fun MainScreen(
         SettingsSheet(
             homeName = scope.home.name,
             onChangeHome = { settingsOpen = false; onChangeHome() },
-            onSignOut = { settingsOpen = false; onSignOut() },
             onDismiss = { settingsOpen = false },
         )
     }
@@ -228,22 +206,13 @@ private fun MainNavHost(
             )
         }
         composable<MapRoute> {
-            MapScreen(live = live, onOpenMissions = { navController.navigateTab(MissionsRoute) })
+            MapScreen(live = live)
         }
         composable<MissionsRoute> {
             MissionsScreen(
                 robot = robot,
                 zone = live.zone,
                 currentMissionId = live.missionId,
-                onOpenMission = { id -> navController.navigate(MissionDetailRoute(id)) },
-            )
-        }
-        composable<MissionDetailRoute> { entry ->
-            MissionDetailScreen(
-                robot = robot,
-                zone = live.zone,
-                missionId = entry.toRoute<MissionDetailRoute>().missionId,
-                onBack = { navController.popBackStack() },
             )
         }
         composable<HistoryRoute> {
@@ -270,8 +239,7 @@ private fun BottomBar(navController: NavHostController) {
     val entry by navController.currentBackStackEntryAsState()
     NavigationBar(containerColor = colors.chrome, contentColor = colors.onChrome) {
         Tab.entries.forEach { tab ->
-            val selected = entry?.destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true ||
-                (tab == Tab.Missions && entry?.destination?.hasRoute(MissionDetailRoute::class) == true)
+            val selected = entry?.destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true
             NavigationBarItem(
                 selected = selected,
                 onClick = { navController.navigateTab(tab.route) },
@@ -310,10 +278,13 @@ private fun SideRail(navController: NavHostController) {
     }
 }
 
-/** Cabecera: perfil del residente, domicilio, robot, avisos y menú (propuesta móvil). */
+/**
+ * Cabecera del mockup: avatar, saludo, domicilio y robot, avisos y ajustes.
+ *
+ * Sin inicio de sesión todavía no hay nombre de usuario ni "Cerrar sesión": se agregan junto con el login.
+ */
 @Composable
 private fun Header(
-    greeting: String?,
     homeName: String,
     robotCode: String?,
     robots: List<String>,
@@ -333,18 +304,9 @@ private fun Header(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
-        Box(
-            Modifier.size(44.dp).clip(CircleShape).background(colors.secondary),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                (greeting ?: homeName).split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() },
-                style = MaterialTheme.typography.titleSmall,
-                color = colors.onWarning,
-            )
-        }
+        AppIcon(R.drawable.ic_account_circle, size = 52.dp, tint = colors.onChrome)
         Column(Modifier.weight(1f)) {
-            Text(if (greeting != null) "Hola, $greeting" else "Hola", style = MaterialTheme.typography.titleSmall, color = colors.onChrome, maxLines = 1)
+            Text("Hola!", style = MaterialTheme.typography.bodyLarge, color = colors.onChrome, maxLines = 1)
             val place = listOfNotNull(homeName, robotCode).joinToString(" · ")
             if (robots.size > 1) {
                 Box {
@@ -352,7 +314,7 @@ private fun Header(
                         onClick = { robotMenu = true },
                         contentPadding = PaddingValues(0.dp),
                     ) {
-                        Text(place, style = MaterialTheme.typography.labelMedium, color = colors.onChrome, maxLines = 1)
+                        Text(place, style = MaterialTheme.typography.titleSmall, color = colors.onChrome, maxLines = 1)
                         AppIcon(R.drawable.ic_expand_more, contentDescription = "Cambiar de robot", size = 18.dp, tint = colors.onChrome)
                     }
                     DropdownMenu(expanded = robotMenu, onDismissRequest = { robotMenu = false }) {
@@ -362,7 +324,7 @@ private fun Header(
                     }
                 }
             } else {
-                Text(place, style = MaterialTheme.typography.labelMedium, color = colors.onChrome, maxLines = 1)
+                Text(place, style = MaterialTheme.typography.titleSmall, color = colors.onChrome, maxLines = 1)
             }
         }
         IconButton(onClick = onBell) {

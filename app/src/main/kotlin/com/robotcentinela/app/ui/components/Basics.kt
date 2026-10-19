@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -136,27 +135,6 @@ fun SectionCard(
             }
             content()
         }
-    }
-}
-
-/**
- * Rótulo "Datos simulados" (HU15 CDA 2, RB29). Aparece en todas las pantallas cuando el origen de
- * datos es el simulador.
- */
-@Composable
-fun SimulationTag(modifier: Modifier = Modifier) {
-    val colors = CentinelaTheme.colors
-    Row(
-        modifier = modifier
-            .clip(CentinelaShapes.pill)
-            .background(colors.statusNeutral)
-            .padding(horizontal = Spacing.s, vertical = 2.dp)
-            .clearAndSetSemantics { contentDescription = "Datos simulados: no provienen de un robot real" },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-    ) {
-        AppIcon(R.drawable.ic_science, size = 16.dp, tint = colors.onStatusNeutral)
-        Text("Datos simulados", style = MaterialTheme.typography.labelSmall, color = colors.onStatusNeutral)
     }
 }
 

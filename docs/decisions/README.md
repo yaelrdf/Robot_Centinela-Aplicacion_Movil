@@ -6,4 +6,4 @@
 | [ADR-002](ADR-002-inyeccion-dependencias-manual.md) | Inyección de dependencias manual | Aceptada |
 | [ADR-003](ADR-003-supabase-kt-y-contrato-json.md) | supabase-kt y DTO según `JSON_estructura.txt` | Aceptada (recursos provisionales) |
 | [ADR-004](ADR-004-parametros-iniciales.md) | Parámetros iniciales configurables | Aceptada |
-| [ADR-005](ADR-005-interfaz-compose-y-simulador.md) | Interfaz Compose, simulador de datos y contratos provisionales | Propuesta |
+| [ADR-005](ADR-005-interfaz-compose.md) | Interfaz Compose conectada solo al backend real | Aceptada |

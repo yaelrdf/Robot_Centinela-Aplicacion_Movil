@@ -43,6 +43,7 @@ fun LineChart(
     onSelect: (Int?) -> Unit,
     modifier: Modifier = Modifier,
     accessibilitySummary: String = "",
+    area: Boolean = false,
 ) {
     val colors = CentinelaTheme.colors
     val measurer = rememberTextMeasurer()
@@ -126,6 +127,15 @@ fun LineChart(
                 seg.asReversed().forEach { p -> band.lineTo(px(p.xMs), py(p.low!!)) }
                 band.close()
                 drawPath(band, colors.primary.copy(alpha = 0.15f))
+            }
+            // Área bajo la serie (estilo del mockup). Cada tramo continuo se rellena por separado: los huecos quedan vacíos.
+            if (area && seg.size > 1) {
+                val fill = Path()
+                fill.moveTo(px(seg.first().xMs), bottom)
+                seg.forEach { p -> fill.lineTo(px(p.xMs), py(p.y!!)) }
+                fill.lineTo(px(seg.last().xMs), bottom)
+                fill.close()
+                drawPath(fill, colors.primary.copy(alpha = 0.35f))
             }
             if (seg.size == 1) {
                 drawCircle(colors.primary, 3.dp.toPx(), Offset(px(seg[0].xMs), py(seg[0].y!!)))

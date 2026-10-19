@@ -4,13 +4,12 @@
     <!-- Necesario para consultar Supabase (Auth, PostgREST y Realtime). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Sin ícono propio: el equipo todavía no define el logo (se usa el ícono por defecto del sistema). -->
     <!-- Sin permiso de notificaciones: push (HU16) es una extensión opcional fuera de esta versión. -->
     <application
         android:name=".shell.CentinelaApplication"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Centinela">
 

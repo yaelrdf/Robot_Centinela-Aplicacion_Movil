@@ -3,7 +3,7 @@
 Este repositorio contiene la app Android del proyecto **Robot Centinela**, un rover doméstico que
 monitorea gases y navega en dos dimensiones: el **backend en Kotlin** (dominio, casos de uso y
 adaptadores de datos) y una **propuesta de frontend en Jetpack Compose** basada en la guía de
-interfaces *Lunar Base* (ver [docs/ui/propuesta-frontend.md](docs/ui/propuesta-frontend.md)).
+interfaces *Lunar Base* (ver [docs/ui/interfaz-movil.md](docs/ui/interfaz-movil.md)).
 
 La app es de **consulta**. Lee de Supabase la telemetría y las alertas del robot que la ingesta
 persistió. **No controla el robot**: el inicio, la pausa y la parada son locales y el firmware es la
@@ -12,8 +12,8 @@ umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 
 > **Estado:** borrador. La interfaz es una **propuesta** sobre la guía de diseño de Ingeniería de
 > Software. Varios contratos de datos son **provisionales** hasta que backend publique el esquema de
-> Supabase (ver [docs/pendientes.md](docs/pendientes.md)). Sin Supabase configurado, la app arranca
-> con un **simulador de datos** rotulado como tal (HU15).
+> Supabase (ver [docs/pendientes.md](docs/pendientes.md)). La app se conecta solo al backend real
+> (Supabase); el inicio de sesión se integra al final, por indicación del equipo.
 
 ## Alcance de esta versión
 
@@ -26,9 +26,9 @@ umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 | Historial de frames y alertas con filtro de fechas local convertido a UTC | HU07 |
 | Batería con método ("Porcentaje no disponible" si solo hay voltaje) | HU08 |
 | Pose con incertidumbre e IDs de mapa y misión (sin geometría de mapa) | HU05, HU06 (parcial) |
-| Fixtures sintéticos de prueba y simulador con escenarios de QA | HU15 |
-| Interfaz Compose: acceso, domicilio, Resumen, Mapa, Misiones, Historial, Eventos y Ajustes, con tema claro/oscuro | HU01 a HU08, HU12, HU20 |
-| Plano por versión de mapa y resumen de misión (contratos **provisionales**, solo en el simulador) | HU05, HU06, HU08 |
+| Fixtures sintéticos de prueba | HU15 (parcial) |
+| Interfaz Compose según los mockups móviles: Resumen, Mapa, Misiones e Historial (Eventos desde la campana), con tema claro/oscuro | HU02 a HU08, HU12, HU20 |
+| Plano por versión de mapa y resumen de misión: contratos **provisionales** en `:core`, sin adaptador todavía (la interfaz muestra "pendiente de backend") | HU05, HU06, HU08 |
 
 **Fuera de esta versión:** las calibraciones
 detalladas, la exportación CSV, push, video y comandos. La trazabilidad completa está en
@@ -83,10 +83,8 @@ core/src/main/kotlin/com/robotcentinela/app/
   shared/                   intervalo UTC, paginación, errores
 app/src/main/kotlin/com/robotcentinela/app/
   <dominio>/adapters/supabase/   implementaciones de los puertos
-  <dominio>/adapters/demo/       implementaciones del simulador de datos (HU15)
-  shell/                         CentinelaApplication, AppContainer, Adapters (Supabase o simulador)
+  shell/                         CentinelaApplication, AppContainer, Adapters
   shell/supabase/                cliente, configuración y nombres de recursos (provisionales)
-  shell/demo/                    mundo simulado: frames, misiones, planos y alertas sintéticos
   ui/                            interfaz Compose: tema, componentes, pantallas y ViewModels
   ui/model/                      reglas de presentación sin Android (textos, estados, formatos)
 docs/                       arquitectura, diccionario de datos, trazabilidad, decisiones, pendientes
@@ -109,7 +107,6 @@ Las credenciales se leen de `local.properties`, que **no se versiona**. Copia
 | `sdk.dir` | Ruta al Android SDK. |
 | `supabase.url` | URL **HTTPS** del proyecto Supabase. |
 | `supabase.publishableKey` | Clave **pública** del cliente (anon o publishable). |
-| `centinela.dataSource` | Opcional: `supabase`, `demo` o vacío (Supabase si está configurado; si no, simulador). |
 
 La app **rechaza** claves privilegiadas (`service_role` o `sb_secret_...`): nunca deben llegar al
 teléfono (expediente §7.3, RNF08). Sin configuración, la app compila y arranca, y el error aparece
@@ -133,7 +130,7 @@ con un mensaje claro al usar el backend por primera vez.
 | [docs/requirements/trazabilidad.md](docs/requirements/trazabilidad.md) | HU, RF y RB, con su código, pruebas y estado |
 | [docs/decisions/](docs/decisions/) | Registro de decisiones de arquitectura (ADR) |
 | [docs/pendientes.md](docs/pendientes.md) | Preguntas abiertas para backend, IoT e Ingeniería de Software |
-| [docs/ui/propuesta-frontend.md](docs/ui/propuesta-frontend.md) | Propuesta de interfaz: pantallas, tokens, accesibilidad, simulador y hallazgos de la guía |
+| [docs/ui/interfaz-movil.md](docs/ui/interfaz-movil.md) | Interfaz móvil: pantallas, conexión con el backend, tokens y accesibilidad |
 
 La documentación de origen del proyecto (expediente técnico, historias de usuario y estructura JSON)
 está en `Documentacion-original/`, que se usa localmente y no se versiona.

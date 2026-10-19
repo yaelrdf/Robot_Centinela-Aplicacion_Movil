@@ -46,6 +46,8 @@ class ProvisionalContractsTest {
     private fun mission(robotId: RobotId, vararg outcomes: StationOutcome) = MissionSummary(
         id = MissionId(UUID.randomUUID()),
         robotId = robotId,
+        name = "Patrullaje de prueba",
+        purpose = null,
         mapVersionId = mapV1,
         startedAt = TestFrames.T0,
         endedAt = null,

@@ -2,12 +2,10 @@ package com.robotcentinela.app.ui.app
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +21,6 @@ import com.robotcentinela.app.R
 import com.robotcentinela.app.shell.AppContainer
 import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.homes.HomeSelectionScreen
-import com.robotcentinela.app.ui.login.LoginScreen
 import com.robotcentinela.app.ui.main.MainScreen
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
@@ -49,31 +46,8 @@ private fun AppContent(container: AppContainer, preferences: UiPreferences) {
         val root: RootViewModel = viewModel { RootViewModel(container) }
         val state by root.state.collectAsStateWithLifecycle()
         when (val s = state) {
-            RootState.Loading -> Splash()
-            is RootState.SignedOut -> LoginScreen(justSignedOut = s.signedOut)
-            RootState.ChoosingHome -> HomeSelectionScreen(
-                onChosen = root::homeChosen,
-                onSignOut = root::signOut,
-            )
-            is RootState.Ready -> MainScreen(
-                scope = s.scope,
-                sessionWarning = s.sessionWarning,
-                onChangeHome = root::changeHome,
-                onSignOut = root::signOut,
-            )
-        }
-    }
-}
-
-@Composable
-private fun Splash() {
-    val colors = CentinelaTheme.colors
-    Box(Modifier.fillMaxSize().background(colors.chrome), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
-            AppIcon(R.drawable.ic_smart_toy, size = 56.dp, tint = colors.onChrome)
-            Text("Robot Centinela", style = MaterialTheme.typography.headlineSmall, color = colors.onChrome)
-            CircularProgressIndicator(color = colors.secondary)
-            Text("Verificando sesión…", style = MaterialTheme.typography.bodySmall, color = colors.onChrome)
+            RootState.ChoosingHome -> HomeSelectionScreen(onChosen = root::homeChosen)
+            is RootState.Ready -> MainScreen(scope = s.scope, onChangeHome = root::changeHome)
         }
     }
 }
@@ -90,8 +64,7 @@ private fun ConfigurationError(message: String) {
         Text("No se pudo configurar la conexión", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
         Text(message, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
         Text(
-            "Revisa supabase.url y supabase.publishableKey en local.properties, o usa " +
-                "centinela.dataSource=demo para abrir la app con datos simulados.",
+            "Revisa supabase.url y supabase.publishableKey en local.properties (ver local.properties.example).",
             style = MaterialTheme.typography.bodySmall,
             color = colors.textSecondary,
         )

@@ -1,155 +1,185 @@
 package com.robotcentinela.app.ui.map
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.robotcentinela.app.R
-import com.robotcentinela.app.ui.app.uiDependencies
+import com.robotcentinela.app.environmentalmonitoring.domain.ChannelKey
+import com.robotcentinela.app.homemapping.domain.Room
 import com.robotcentinela.app.ui.components.AppIcon
-import com.robotcentinela.app.ui.components.EmptyState
-import com.robotcentinela.app.ui.components.FilterChipRow
 import com.robotcentinela.app.ui.components.FloorPlanView
-import com.robotcentinela.app.ui.components.MapLegend
 import com.robotcentinela.app.ui.components.ScreenTitle
 import com.robotcentinela.app.ui.components.SectionCard
-import com.robotcentinela.app.ui.components.StatusBadge
+import com.robotcentinela.app.ui.components.channelIcon
 import com.robotcentinela.app.ui.main.FloorPlanState
 import com.robotcentinela.app.ui.main.LiveUiState
+import com.robotcentinela.app.ui.model.ChannelPresentation
 import com.robotcentinela.app.ui.model.MapLayers
 import com.robotcentinela.app.ui.model.OperationPresentation
+import com.robotcentinela.app.ui.model.StatusTone
 import com.robotcentinela.app.ui.summary.mapSummary
 import com.robotcentinela.app.ui.summary.planNote
 import com.robotcentinela.app.ui.theme.CentinelaShapes
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 
-private enum class Layer(val label: String) { Route("Ruta"), Samples("Muestras en estaciones"), Transit("Lecturas en tránsito") }
-
-/** Mapa asistido 2D de la misión en curso (HU05, HU06, guía §12.5). */
+/** Mapa asistido 2D de la misión en curso, según el mockup móvil (HU05, HU06, guía §12.5). */
 @Composable
-fun MapScreen(live: LiveUiState, onOpenMissions: () -> Unit) {
+fun MapScreen(live: LiveUiState) {
     val colors = CentinelaTheme.colors
-    val deps = uiDependencies
-    var route by rememberSaveable { mutableStateOf(true) }
-    var samples by rememberSaveable { mutableStateOf(true) }
-    var transit by rememberSaveable { mutableStateOf(false) }
-
-    fun toggle(layer: Layer) {
-        when (layer) {
-            Layer.Route -> route = !route
-            Layer.Samples -> samples = !samples
-            Layer.Transit -> transit = !transit
-        }
-    }
+    var roomDetail by remember { mutableStateOf<Room?>(null) }
     val plan = (live.floorPlan as? FloorPlanState.Available)?.plan
+    val mission = live.mission
 
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val mapHeight = (maxHeight * 0.6f).coerceAtLeast(320.dp)
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
-        ) {
-            ScreenTitle("Mapa asistido 2D", live.robot?.let { "Robot ${it.publicCode} · misión en curso" }, deps.simulated)
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m),
+    ) {
+        ScreenTitle("Mapa", live.robot?.let { "Robot ${it.publicCode}" })
 
-            if (live.robotMarker == null && live.trajectory.isEmpty() && plan == null) {
-                EmptyState(
-                    icon = R.drawable.ic_map,
-                    title = "Sin posición para mostrar",
-                    message = "Los frames recientes no traen pose. Sin pose no hay posición: el robot nunca se dibuja en un " +
-                        "punto supuesto.",
-                )
-            } else {
-                SectionCard(contentPadding = Spacing.s) {
-                    FloorPlanView(
-                        plan = plan,
-                        trajectory = live.trajectory,
-                        robot = live.robotMarker,
-                        layers = MapLayers(route = route, samples = samples, transit = transit),
-                        modifier = Modifier.fillMaxWidth().height(mapHeight),
-                        interactive = true,
-                        signalLabel = live.signalLabel,
-                        accessibilitySummary = mapSummary(live),
-                    )
-                }
-                FilterChipRow(
-                    options = Layer.entries,
-                    selected = buildSet {
-                        if (route) add(Layer.Route)
-                        if (samples) add(Layer.Samples)
-                        if (transit) add(Layer.Transit)
-                    },
-                    label = { it.label },
-                    onToggle = ::toggle,
-                )
-                MapLegend(showSamples = samples)
-            }
-
-            SectionCard(title = "Posición") {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    AppIcon(R.drawable.ic_navigation, tint = colors.textSecondary)
+        // Misión en curso | Estaciones
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
+                Text("Misión en curso", style = MaterialTheme.typography.titleSmall)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    AppIcon(R.drawable.ic_replay, size = 18.dp, tint = colors.textPrimary)
                     Text(
-                        live.poseText?.let { "Estimada: $it" } ?: "Sin pose en el último frame",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                if (live.poseStale) {
-                    Text(
-                        "Es la posición del último reporte y está atrasada (${live.lastUpdate ?: "sin hora"}).",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textPrimary,
+                        mission?.name ?: if (live.missionId != null) "Misión activa" else "Sin misión",
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
                 Text(
-                    "La posición es una estimación con su incertidumbre: el círculo discontinuo no es el tamaño del robot. " +
-                        "La app no asigna lecturas a habitaciones.",
+                    when {
+                        mission != null -> OperationPresentation.missionStatus(mission.status).text
+                        live.missionsSupported -> "Sin datos de misión"
+                        else -> "Detalle pendiente de backend"
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.textSecondary,
+                )
+            }
+            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
+                Text("Estaciones", style = MaterialTheme.typography.titleSmall)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    AppIcon(R.drawable.ic_conversion_path, size = 18.dp, tint = colors.textPrimary)
+                    Text(mission?.let(OperationPresentation::stationProgress) ?: "—", style = MaterialTheme.typography.titleLarge)
+                }
+                Text(
+                    "Última actualización: ${live.lastUpdate ?: "sin datos"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.textSecondary,
+                )
+            }
+        }
+
+        // Leyenda de sensores | Batería
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
+                ChannelPresentation.PRIMARY.forEach { key -> SensorLegendRow(key, live) }
+            }
+            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
+                Text("Batería", style = MaterialTheme.typography.titleSmall)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    AppIcon(R.drawable.ic_battery_5_bar, size = 22.dp, tint = colors.graphic(StatusTone.Operational))
+                    Text(live.battery.primary ?: "—", style = MaterialTheme.typography.titleLarge)
+                }
+                Text(live.battery.secondary, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+            }
+        }
+
+        SectionCard(title = "Mapa asistido 2D") {
+            if (live.robotMarker == null && live.trajectory.isEmpty() && plan == null) {
+                Text(
+                    "Los frames recientes no traen pose. Sin pose no hay posición: el robot nunca se dibuja en un punto supuesto.",
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.textSecondary,
                 )
-                planNote(live.floorPlan)?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-                }
+            } else {
+                FloorPlanView(
+                    plan = plan,
+                    trajectory = live.trajectory,
+                    robot = live.robotMarker,
+                    layers = MapLayers(route = true, samples = true, transit = false),
+                    modifier = Modifier.fillMaxWidth().height(260.dp),
+                    interactive = true,
+                    accessibilitySummary = mapSummary(live),
+                )
             }
+            Text(
+                if (live.poseStale) "Posición del último reporte (atrasada)" else "Posición estimada - Incertidumbre visible",
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(top = Spacing.s),
+            )
+            planNote(live.floorPlan)?.let {
+                Text(it, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+            }
+        }
 
-            SectionCard(title = "Misión") {
-                val mission = live.mission
-                if (mission != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                        StatusBadge(OperationPresentation.missionStatus(mission.status))
-                        Text(
-                            "Estaciones ${OperationPresentation.stationProgress(mission)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+        SectionCard(title = "Habitaciones") {
+            val rooms = plan?.rooms.orEmpty()
+            if (rooms.isEmpty()) {
+                Text(
+                    "Las habitaciones vienen del plano validado del domicilio, que todavía no publica el backend.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textSecondary,
+                )
+            } else {
+                rooms.forEach { room ->
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = CentinelaShapes.minTouchTarget),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(room.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        TextButton(
+                            onClick = { roomDetail = room },
+                            shape = CentinelaShapes.pill,
+                            colors = ButtonDefaults.textButtonColors(containerColor = colors.chrome, contentColor = colors.onChrome),
+                        ) {
+                            AppIcon(R.drawable.ic_info, size = 16.dp, tint = colors.onChrome)
+                            Text(" Ver detalles", style = MaterialTheme.typography.labelMedium)
+                        }
                     }
-                } else {
-                    Text(
-                        if (live.missionsSupported) "Sin misión activa en el último frame." else "Resumen de misión pendiente de contrato.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
-                    )
-                }
-                OutlinedButton(onClick = onOpenMissions, shape = CentinelaShapes.control, modifier = Modifier.padding(top = Spacing.s)) {
-                    Text("Ver misiones y comparar recorridos")
                 }
             }
         }
+    }
+
+    roomDetail?.let { room -> RoomDetailSheet(room = room, onDismiss = { roomDetail = null }) }
+}
+
+/** Fila de la leyenda de sensores del mockup: ícono y nombre del canal. */
+@Composable
+private fun SensorLegendRow(key: ChannelKey, live: LiveUiState) {
+    val colors = CentinelaTheme.colors
+    val status = live.channelStatuses[key]
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+    ) {
+        channelIcon(key)?.let { AppIcon(it, size = 18.dp, tint = colors.textPrimary) }
+        Text(ChannelPresentation.title(key, status?.capability), style = MaterialTheme.typography.bodySmall, maxLines = 1)
     }
 }

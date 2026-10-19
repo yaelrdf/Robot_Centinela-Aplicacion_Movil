@@ -79,11 +79,15 @@ data class MissionEnergy(
  * **PROVISIONAL.** El contrato del resumen de misión está pendiente (docs/pendientes.md, "Misiones").
  * Este modelo recoge lo que piden HU05, HU06 y HU08 y se ajustará al contrato publicado.
  *
+ * @property name nombre visible de la misión (mockup: "Patrullaje 03 - Regular"); `null` si no tiene.
+ * @property purpose propósito declarado al crearla (mockup "Nueva misión"); `null` si no tiene.
  * @property mapVersionId versión exacta de mapa usada; la trayectoria se dibuja sobre ella (HU05).
  */
 data class MissionSummary(
     val id: MissionId,
     val robotId: RobotId,
+    val name: String?,
+    val purpose: String?,
     val mapVersionId: MapVersionId?,
     val startedAt: Instant,
     val endedAt: Instant?,

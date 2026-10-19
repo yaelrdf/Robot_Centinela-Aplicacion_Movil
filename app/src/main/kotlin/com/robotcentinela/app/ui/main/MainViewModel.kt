@@ -19,7 +19,6 @@ import com.robotcentinela.app.missions.domain.MissionId
 import com.robotcentinela.app.missions.domain.MissionSummary
 import com.robotcentinela.app.shared.PageRequest
 import com.robotcentinela.app.shell.AppContainer
-import com.robotcentinela.app.shell.DataSource
 import com.robotcentinela.app.telemetry.application.SyncStatus
 import com.robotcentinela.app.telemetry.application.TelemetrySyncState
 import com.robotcentinela.app.telemetry.application.TelemetrySynchronizer
@@ -437,8 +436,6 @@ class MainViewModel(private val container: AppContainer, private val scope: Home
             bannerAlert = a.open.firstOrNull { OperationPresentation.isHighSeverity(it) && it.id !in a.dismissed },
         )
     }
-
-    val simulated: Boolean get() = container.dataSource is DataSource.Simulated
 
     private companion object {
         /** Canal cuya señal relativa se proyecta en el mapa (MQ6, señal de gas principal). */

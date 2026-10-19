@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Solo para la ventana y el ícono; la interfaz usa los tokens de ui/theme/CentinelaColors.kt. -->
+    <!-- Solo para la ventana; la interfaz usa los tokens de ui/theme/CentinelaColors.kt. -->
     <color name="centinela_background">#EEEEEE</color>
-    <color name="centinela_navy">#2D4059</color>
-    <color name="centinela_orange">#FF5722</color>
 </resources>

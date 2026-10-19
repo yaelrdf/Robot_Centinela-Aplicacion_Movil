@@ -27,7 +27,7 @@
 | HU12 | Preferencias visuales UI | Máxima | RF22, RF23 | `ui/theme` (tokens claro/oscuro, `ThemePreference`), `SettingsSheet` | — | 🟡 Propuesta implementada; falta validación con el equipo de diseño |
 | HU13 | Exportación de reportes | Media | RF21 | — | — | ⏳ Prioridad Should; el formato del CSV y su origen no están definidos |
 | HU14 | Auditoría técnica | Máxima | RF24, RF25 | — | — | ➖ Herramientas técnicas separadas (RF24); los dashboards de consulta no editan |
-| HU15 | Simulación de datos QA | Máxima | RF35; RB29 | Fixtures sintéticos; `TestFrames`; simulador `shell/demo` con escenarios; rótulo `SimulationTag` | `TelemetryFrameMapperTest`, `TelemetrySynchronizerTest` | 🟡 Simulador local rotulado y sin salida a residentes. El emisor MQTT de prueba es de QA y backend |
+| HU15 | Simulación de datos QA | Máxima | RF35; RB29 | Fixtures sintéticos en `app/src/test/resources/fixtures/telemetry/`; `TestFrames` | `TelemetryFrameMapperTest`, `TelemetrySynchronizerTest` | 🟡 Cubre nulls, calidades, duplicados y desconexiones. El emisor MQTT de prueba es de QA y backend |
 | HU16 | Notificaciones Push | Media | RF26 | — | — | ⏳ Extensión opcional (Should) |
 | HU17 | Video en LAN | Baja | RF27; RB33 | — | — | ⏳ Extensión opcional (Could) |
 | HU18 | Comandos remotos | Baja | RF28; RB32 | — | — | ⏳ Extensión opcional (Could), detrás de feature flag |
@@ -38,15 +38,14 @@
 
 | HU | Pantalla o componente | Qué cubre |
 |---|---|---|
-| HU01 | `LoginScreen`, `HomeSelectionScreen` | Acceso con errores ligados al campo; selección explícita de domicilio |
+| HU01 | `HomeSelectionScreen` | Selección explícita de domicilio. El inicio de sesión se integra al final (indicación del equipo) |
 | HU02, HU20 | `MetricCard`, `ChannelDetailSheet`, `ChannelPresentation` | Valor, unidad, calidad visible; ADC sin ppm; raya con "Sin dato", "No instalado", "Calentando", "Falla", "Fuera de rango" |
 | HU03 | `MainViewModel` | Sincronizador iniciado y detenido con el ciclo de vida; sin duplicados en la ruta |
 | HU04 | `MetricCard` | Edad del dato, "Atrasado" con hora exacta, hora aproximada marcada con "≈" |
-| HU05, HU06 | `FloorPlanView`, `MapScreen`, `MissionDetailScreen` | Trayectoria sobre la versión exacta de mapa; incertidumbre distinta de la huella; estaciones omitidas con causa |
-| HU07 | `HistoryScreen`, `EventsScreen` | Rango local a UTC; mín, máx y promedio; gráfica con huecos y tabla paginada |
-| HU08 | `OperationCard`, `MissionDetailScreen` | Voltaje con "Porcentaje no disponible" y método; consumo con método |
+| HU05, HU06 | `FloorPlanView`, `MapScreen`, `MissionsScreen` | Trayectoria sobre la versión exacta de mapa; incertidumbre distinta de la huella; estaciones omitidas con causa |
+| HU07 | `HistoryScreen`, `EventsScreen` | Rango local a UTC; alertas por severidad; mín, máx y promedio; gráfica con huecos |
+| HU08 | `OperationCard`, `MissionsScreen` | Voltaje con "Porcentaje no disponible" y método; consumo con método |
 | HU12 | `CentinelaTheme`, `SettingsSheet` | Tema elegido explícitamente, contraste, Poppins con dígitos tabulares |
-| HU15 | `SimulationTag`, simulador | "Datos simulados" en todas las pantallas; escenarios de QA |
 
 Pruebas de la interfaz: `PresentationTest` (reglas de presentación) y `ProvisionalContractsTest`.
 

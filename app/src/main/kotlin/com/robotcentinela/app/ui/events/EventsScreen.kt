@@ -45,7 +45,7 @@ fun EventsScreen(robot: Robot, zone: ZoneId, onOpenAlert: (Alert) -> Unit, onCha
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
         verticalArrangement = Arrangement.spacedBy(Spacing.l),
     ) {
-        ScreenTitle("Eventos", "Alertas e incidentes registrados por el servidor", deps.simulated)
+        ScreenTitle("Eventos", "Alertas e incidentes registrados por el servidor")
         SectionCard(title = "Filtros") {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
                 RangeSelector(

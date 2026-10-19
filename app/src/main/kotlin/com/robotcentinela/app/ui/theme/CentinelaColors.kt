@@ -13,7 +13,7 @@ import com.robotcentinela.app.ui.model.StatusTone
  * contraste que exige la misma guía (4.5:1 en texto, 3:1 en gráficos). En tema claro, `operational`
  * (#B5D0A2) y `warning` (#FF5722) no alcanzan 4.5:1 como texto sobre `surface` (1.7:1 y 3.2:1), así que
  * los estados se dibujan como insignias rellenas con texto oscuro encima (8.8:1 y 4.7:1). Ver
- * docs/ui/propuesta-frontend.md.
+ * docs/ui/interfaz-movil.md.
  */
 @Immutable
 data class CentinelaColors(

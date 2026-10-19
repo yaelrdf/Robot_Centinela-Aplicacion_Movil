@@ -17,35 +17,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.robotcentinela.app.R
+import com.robotcentinela.app.environmentalmonitoring.domain.ChannelKey
 import com.robotcentinela.app.ui.model.BatteryModel
 import com.robotcentinela.app.ui.model.ConnectivityItem
 import com.robotcentinela.app.ui.model.MetricCardModel
-import com.robotcentinela.app.ui.model.StatusLabel
+import com.robotcentinela.app.ui.model.StatusTone
 import com.robotcentinela.app.ui.theme.CentinelaShapes
 import com.robotcentinela.app.ui.theme.CentinelaText
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 
+/** Ícono del sensor según el mockup (Gas LP, metano, temperatura y humedad); `null` si no hay uno definido. */
+fun channelIcon(channelKey: ChannelKey): Int? = when (channelKey.value) {
+    "mq6_raw" -> R.drawable.ic_local_fire_department
+    "mq4_raw" -> R.drawable.ic_airwave
+    "temperature" -> R.drawable.ic_thermostat
+    "humidity" -> R.drawable.ic_water_drop
+    else -> null
+}
+
 /**
- * Tarjeta de métrica (guía §12.5, HU02, HU04, HU20).
+ * Tarjeta de métrica del mockup móvil (guía §12.5, HU02, HU04, HU20): nombre con ícono del sensor,
+ * valor con unidad, "Última lectura" y estado de calidad con ícono.
  *
  * - Sin valor: raya "—" con la leyenda del estado ("Sin dato", "No instalado", "Calentando"); nunca 0.
- * - Dato atrasado: borde de aviso, ícono de reloj y hora exacta de la última lectura, sin animaciones.
+ * - Falla del sensor: borde rojo. Dato atrasado: borde naranja y hora exacta de la última lectura.
  * - Toda la tarjeta es un solo elemento para lectores de pantalla, con una descripción completa.
  */
 @Composable
 fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val colors = CentinelaTheme.colors
+    val critical = model.status.tone == StatusTone.Critical
     Surface(
         onClick = onOpen,
         modifier = modifier
-            .heightIn(min = 148.dp)
+            .heightIn(min = 132.dp)
             .clearAndSetSemantics {
                 contentDescription = model.accessibilityText
                 role = Role.Button
@@ -55,14 +68,18 @@ fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = 
         color = colors.surface,
         contentColor = colors.textPrimary,
         border = BorderStroke(
-            if (model.stale) CentinelaShapes.focusWidth else CentinelaShapes.borderWidth,
-            if (model.stale) colors.warning else colors.border,
+            if (critical || model.stale) CentinelaShapes.focusWidth else CentinelaShapes.borderWidth,
+            when {
+                critical -> colors.critical
+                model.stale -> colors.warning
+                else -> colors.border
+            },
         ),
     ) {
-        Column(Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            Text(model.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            model.subtitle?.let {
-                Text(it, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary, maxLines = 2)
+        Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                Text(model.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                channelIcon(model.channelKey)?.let { AppIcon(it, size = 18.dp, tint = if (critical) colors.critical else colors.textPrimary) }
             }
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Text(model.value ?: "—", style = CentinelaText.metricValue, maxLines = 1)
@@ -70,23 +87,16 @@ fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = 
                     Text(it, style = CentinelaText.metricUnit, color = colors.textSecondary, modifier = Modifier.padding(bottom = 6.dp))
                 }
             }
-            StatusBadge(model.status)
-            if (model.stale) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    AppIcon(R.drawable.ic_schedule, size = 16.dp, tint = colors.textPrimary)
-                    Text(
-                        "Atrasado · última lectura ${model.capturedAt ?: "sin hora"}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.textPrimary,
-                    )
-                }
-            } else if (model.age != null) {
-                Text(
-                    listOfNotNull(model.capturedAt, model.age).joinToString(" · "),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.textSecondary,
-                )
-            }
+            Text(
+                when {
+                    model.stale -> "Atrasado: última lectura ${model.capturedAt ?: "sin hora"}"
+                    model.age != null -> "Última lectura: ${model.age}"
+                    else -> "Última lectura: ----"
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = if (model.stale) colors.textPrimary else colors.textSecondary,
+            )
+            StatusBadge(model.status, modifier = Modifier.padding(top = 2.dp))
         }
     }
 }
@@ -120,7 +130,7 @@ fun ConnectivityBar(items: List<ConnectivityItem>, modifier: Modifier = Modifier
                 ) {
                     AppIcon(
                         when (item.title) {
-                            "Robot" -> R.drawable.ic_smart_toy
+                            "Robot" -> R.drawable.ic_pin_drop
                             "Ingesta" -> R.drawable.ic_router
                             else -> R.drawable.ic_smartphone
                         },
@@ -137,36 +147,34 @@ fun ConnectivityBar(items: List<ConnectivityItem>, modifier: Modifier = Modifier
     }
 }
 
-/** Panel de operación: batería con método, estaciones y última actualización (HU08, propuesta móvil). */
+/** Panel "Operación" del mockup: batería con su método y estaciones de la misión (HU08). */
 @Composable
 fun OperationCard(
     battery: BatteryModel,
     stations: String?,
     lastUpdate: String?,
-    robotState: StatusLabel?,
     modifier: Modifier = Modifier,
 ) {
     val colors = CentinelaTheme.colors
-    SectionCard(modifier = modifier, title = "Operación", trailing = { robotState?.let { StatusBadge(it) } }) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.l)) {
+    SectionCard(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            Text("Operación", style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })
             Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
                 Text("Batería", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
-                Text(battery.primary ?: "—", style = MaterialTheme.typography.headlineSmall)
-                Text(battery.secondary, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-                battery.method?.let {
-                    Text("Método: $it", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    AppIcon(R.drawable.ic_battery_5_bar, size = 20.dp, tint = colors.graphic(StatusTone.Operational))
+                    Text(battery.primary ?: "—", style = MaterialTheme.typography.titleLarge)
                 }
+                Text(battery.secondary, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
             }
             Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
                 Text("Estaciones", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
-                Text(stations ?: "—", style = MaterialTheme.typography.headlineSmall)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    AppIcon(R.drawable.ic_conversion_path, size = 20.dp, tint = colors.textPrimary)
+                    Text(stations ?: "—", style = MaterialTheme.typography.titleLarge)
+                }
                 Text(
-                    if (stations == null) "Resumen de misión no disponible" else "Misión en curso",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.textSecondary,
-                )
-                Text(
-                    "Última actualización: ${lastUpdate ?: "sin datos"}",
+                    if (stations == null) "Misiones pendientes de backend" else "Última actualización: ${lastUpdate ?: "sin datos"}",
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.textSecondary,
                 )

@@ -18,10 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -29,9 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.robotcentinela.app.R
 import com.robotcentinela.app.environmentalmonitoring.domain.ChannelKey
 import com.robotcentinela.app.incidents.domain.Alert
-import com.robotcentinela.app.ui.app.uiDependencies
 import com.robotcentinela.app.ui.components.AppIcon
-import com.robotcentinela.app.ui.components.ConnectivityBar
 import com.robotcentinela.app.ui.components.ErrorState
 import com.robotcentinela.app.ui.components.FloorPlanView
 import com.robotcentinela.app.ui.components.MetricCard
@@ -42,7 +36,6 @@ import com.robotcentinela.app.ui.components.RefreshingNote
 import com.robotcentinela.app.ui.components.ScreenTitle
 import com.robotcentinela.app.ui.components.SectionCard
 import com.robotcentinela.app.ui.components.SkeletonBlock
-import com.robotcentinela.app.ui.components.StatusBadge
 import com.robotcentinela.app.ui.events.AlertRow
 import com.robotcentinela.app.ui.main.FloorPlanState
 import com.robotcentinela.app.ui.main.LiveUiState
@@ -66,23 +59,19 @@ fun SummaryScreen(
     onRetryAlerts: () -> Unit,
 ) {
     val colors = CentinelaTheme.colors
-    val deps = uiDependencies
-    var showOthers by rememberSaveable { mutableStateOf(false) }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val columns = if (maxWidth >= 600.dp) 4 else 2
-        val wide = maxWidth >= 840.dp
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             ScreenTitle(
                 title = "Resumen del domicilio",
                 subtitle = listOfNotNull(live.robot?.let { "Robot ${it.publicCode}" }, live.syncLabel?.text).joinToString(" · "),
-                simulated = deps.simulated,
             )
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (live.refreshing) RefreshingNote() else live.syncLabel?.let { StatusBadge(it) }
+                if (live.refreshing) RefreshingNote()
                 Spacer(Modifier.weight(1f))
                 RangeSelector(
                     range = live.alertRange,
@@ -93,60 +82,15 @@ fun SummaryScreen(
             }
 
             live.offlineNotice?.let { Notice(it, R.drawable.ic_cloud_off) }
-            if (live.historyLimited) {
-                Notice(
-                    "Parte del historial intermedio ya no está disponible por la retención del servidor; se muestra el último estado.",
-                    R.drawable.ic_info,
-                )
-            }
             if (live.rejectedFrames > 0) {
                 Notice("${live.rejectedFrames} frames recibidos no cumplen el contrato de la app y no se muestran.", R.drawable.ic_info)
             }
 
-            // Tarjetas ambientales (2 x 2 en móvil, 4 en fila en pantallas anchas).
-            if (live.initialLoading) {
-                MetricGrid(List(4) { null }, columns, onOpenChannel)
-            } else {
-                MetricGrid(live.primaryCards, columns, onOpenChannel)
-            }
-
-            if (wide) {
-                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.l)) {
-                    MapCard(live, onOpenMap, Modifier.weight(2f))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
-                        Operation(live)
-                        ConnectivityBar(live.connectivity)
-                    }
-                }
-            } else {
-                Operation(live)
-                MapCard(live, onOpenMap)
-            }
-
+            // Tarjetas ambientales: 2 x 2 en móvil (mockup), 4 en fila en pantallas anchas.
+            MetricGrid(if (live.initialLoading) List(4) { null } else live.primaryCards, columns, onOpenChannel)
+            Operation(live)
+            MapCard(live, onOpenMap)
             EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts)
-
-            if (!wide) ConnectivityBar(live.connectivity)
-
-            if (live.otherCards.isNotEmpty()) {
-                SectionCard(
-                    title = "Otros canales",
-                    trailing = {
-                        TextButton(onClick = { showOthers = !showOthers }) {
-                            Text(if (showOthers) "Ocultar" else "Mostrar (${live.otherCards.size})", color = colors.textSecondary)
-                        }
-                    },
-                ) {
-                    if (showOthers) {
-                        MetricGrid(live.otherCards, columns, onOpenChannel)
-                    } else {
-                        Text(
-                            "Sensores adicionales del robot: monóxido de carbono, distancia frontal y detectores de piso.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
-                    }
-                }
-            }
             Text(
                 "Un estado \"Dato válido\" no significa ausencia de gases. Las alertas las calcula el servidor con sus reglas.",
                 style = MaterialTheme.typography.bodySmall,
@@ -162,7 +106,6 @@ private fun Operation(live: LiveUiState) {
         battery = live.battery,
         stations = live.mission?.let(OperationPresentation::stationProgress),
         lastUpdate = live.lastUpdate,
-        robotState = live.robotStatus,
     )
 }
 
@@ -242,7 +185,7 @@ fun mapSummary(live: LiveUiState): String = buildString {
 private fun EventsCard(live: LiveUiState, onOpenEvents: () -> Unit, onOpenAlert: (Alert) -> Unit, onRetry: () -> Unit) {
     val colors = CentinelaTheme.colors
     SectionCard(
-        title = "Eventos y avisos",
+        title = "Eventos y Avisos",
         trailing = { TextButton(onClick = onOpenEvents) { Text("Ver todos", color = colors.textSecondary) } },
     ) {
         val panel = live.alerts

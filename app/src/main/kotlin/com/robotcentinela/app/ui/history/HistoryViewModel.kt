@@ -20,6 +20,7 @@ import com.robotcentinela.app.ui.model.Formats
 import com.robotcentinela.app.ui.model.OperationPresentation
 import com.robotcentinela.app.ui.model.RangePreset
 import com.robotcentinela.app.ui.model.StatusLabel
+import com.robotcentinela.app.ui.model.StatusTone
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,8 +35,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
-enum class HistoryMode(val label: String) { Chart("Gráfica"), Table("Tabla") }
-
 data class ChannelOption(val key: ChannelKey, val label: String, val capability: ChannelCapability?)
 
 /** Fila de la tabla de historial: hora, valor con su calidad y posición estimada (§12.5). */
@@ -44,12 +43,16 @@ data class HistoryRow(val time: String, val value: String, val quality: StatusLa
 /** Estadísticas del intervalo (HU07 CDA 3). */
 data class HistoryStats(val min: String, val max: String, val avg: String, val valid: Long, val invalid: Long, val source: String)
 
+/** Alertas registradas en el periodo, por severidad (mockup: dona "Alertas registradas"). */
+data class AlertBreakdown(val critical: Int, val warning: Int, val other: Int) {
+    val total: Int get() = critical + warning + other
+}
+
 data class HistoryUiState(
     val range: DateRange,
     val today: LocalDate,
     val channels: List<ChannelOption>,
     val channel: ChannelOption,
-    val mode: HistoryMode = HistoryMode.Chart,
     val unit: String? = null,
     val decimals: Int = 1,
     val chartLoading: Boolean = true,
@@ -59,11 +62,9 @@ data class HistoryUiState(
     val selectedIndex: Int? = null,
     val selection: List<String> = emptyList(),
     val chartError: Throwable? = null,
-    val tableLoading: Boolean = true,
-    val rows: List<HistoryRow> = emptyList(),
-    val page: Int = 0,
-    val hasNext: Boolean = false,
-    val tableError: Throwable? = null,
+    val alertsLoading: Boolean = true,
+    val alerts: AlertBreakdown? = null,
+    val alertsError: Throwable? = null,
 )
 
 /**
@@ -80,7 +81,7 @@ class HistoryViewModel(
     private val today = LocalDate.now(container.clock.withZone(zone))
     private val mutable = MutableStateFlow(
         HistoryUiState(
-            range = DateRange.of(RangePreset.Last7Days, today),
+            range = DateRange.of(RangePreset.ThisMonth, today),
             today = today,
             channels = DEFAULT_CHANNELS.map { ChannelOption(it, ChannelPresentation.title(it, null), null) },
             channel = ChannelOption(DEFAULT_CHANNELS.first(), ChannelPresentation.title(DEFAULT_CHANNELS.first(), null), null),
@@ -109,33 +110,51 @@ class HistoryViewModel(
     }
 
     fun setRange(range: DateRange) {
-        mutable.update { it.copy(range = range, page = 0, selectedIndex = null, selection = emptyList()) }
+        mutable.update { it.copy(range = range, selectedIndex = null, selection = emptyList()) }
         reloadAll()
     }
 
     fun setChannel(option: ChannelOption) {
-        mutable.update { it.copy(channel = option, page = 0, selectedIndex = null, selection = emptyList()) }
-        reloadAll()
+        mutable.update { it.copy(channel = option, selectedIndex = null, selection = emptyList()) }
+        loadChart()
     }
-
-    fun setMode(mode: HistoryMode) = mutable.update { it.copy(mode = mode) }
-
-    fun nextPage() = goTo(mutable.value.page + 1)
-
-    fun previousPage() = goTo((mutable.value.page - 1).coerceAtLeast(0))
 
     fun retry() = reloadAll()
 
     fun select(index: Int?) = mutable.update { it.copy(selectedIndex = index, selection = describe(index)) }
 
-    private fun goTo(page: Int) {
-        mutable.update { it.copy(page = page) }
-        loadTable()
-    }
-
     private fun reloadAll() {
         loadChart()
-        loadTable()
+        loadAlerts()
+    }
+
+    private var alertsJob: Job? = null
+
+    /** Cuenta las alertas persistidas del periodo por severidad (HU07, RF16). Las calcula el backend; aquí solo se cuentan. */
+    private fun loadAlerts() {
+        alertsJob?.cancel()
+        val range = mutable.value.range
+        mutable.update { it.copy(alertsLoading = true, alertsError = null) }
+        alertsJob = viewModelScope.launch {
+            try {
+                val alerts = container.queryAlertHistory(robot.id, PageRequest(ALERT_LIMIT), range.from, range.to)
+                val tones = alerts.map { OperationPresentation.severity(it.severity).tone }
+                mutable.update {
+                    it.copy(
+                        alertsLoading = false,
+                        alerts = AlertBreakdown(
+                            critical = tones.count { t -> t == StatusTone.Critical },
+                            warning = tones.count { t -> t == StatusTone.Warning },
+                            other = tones.count { t -> t != StatusTone.Critical && t != StatusTone.Warning },
+                        ),
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                mutable.update { it.copy(alertsLoading = false, alertsError = e) }
+            }
+        }
     }
 
     /** Intervalo de agregación según la longitud del rango. */
@@ -234,30 +253,6 @@ class HistoryViewModel(
         }
     }
 
-    private fun loadTable() {
-        tableJob?.cancel()
-        val s = mutable.value
-        mutable.update { it.copy(tableLoading = true, tableError = null) }
-        tableJob = viewModelScope.launch {
-            try {
-                val records = container.queryTelemetryHistory(
-                    robot.id,
-                    s.range.from,
-                    s.range.to,
-                    PageRequest(TABLE_PAGE + 1, s.page.toLong() * TABLE_PAGE),
-                )
-                val rows = records.take(TABLE_PAGE).mapNotNull { record ->
-                    (record as? FrameRecord.Interpreted)?.frame?.let { toRow(it, s.channel) }
-                }
-                mutable.update { it.copy(tableLoading = false, rows = rows, hasNext = records.size > TABLE_PAGE) }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                mutable.update { it.copy(tableLoading = false, tableError = e) }
-            }
-        }
-    }
-
     /** Valor graficable: solo lecturas medidas o señal cruda; los demás estados son huecos, nunca cero. */
     private fun numericValue(frame: TelemetryFrame, channel: ChannelOption): Double? {
         val reading = frame.readings.firstOrNull { it.channelKey == channel.key } ?: return null
@@ -326,7 +321,7 @@ class HistoryViewModel(
     private companion object {
         val DEFAULT_CHANNELS = listOf("mq6_raw", "mq4_raw", "temperature", "humidity").map(::ChannelKey)
         val DECIMALS = mapOf("adc_count" to 0, "celsius" to 1, "percent" to 1, "m" to 2, "ppm" to 0)
-        const val TABLE_PAGE = 25
+        const val ALERT_LIMIT = 500
         const val RAW_LIMIT = 500
         const val GAP_MS = 6_000L
     }

@@ -6,6 +6,3 @@ supabase.url=https://tu-proyecto.supabase.co
 
 # Clave PÚBLICA del cliente (anon/publishable). Nunca uses service_role ni una clave sb_secret_.
 supabase.publishableKey=sb_publishable_valor_ficticio
-
-# Origen de datos: supabase, demo o vacío (Supabase si está configurado; si no, el simulador).
-centinela.dataSource=

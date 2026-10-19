@@ -18,7 +18,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,13 +33,12 @@ import com.robotcentinela.app.ui.app.uiDependencies
 import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.components.EmptyState
 import com.robotcentinela.app.ui.components.ErrorState
-import com.robotcentinela.app.ui.components.SimulationTag
 import com.robotcentinela.app.ui.theme.CentinelaShapes
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 
 @Composable
-fun HomeSelectionScreen(onChosen: () -> Unit, onSignOut: () -> Unit) {
+fun HomeSelectionScreen(onChosen: () -> Unit) {
     val deps = uiDependencies
     val vm: HomeSelectionViewModel = viewModel { HomeSelectionViewModel(deps.container) }
     val state by vm.state.collectAsStateWithLifecycle()
@@ -57,7 +55,6 @@ fun HomeSelectionScreen(onChosen: () -> Unit, onSignOut: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.onChrome,
             )
-            if (deps.simulated) SimulationTag(Modifier.padding(top = Spacing.xs))
         }
 
         when {
@@ -65,13 +62,14 @@ fun HomeSelectionScreen(onChosen: () -> Unit, onSignOut: () -> Unit) {
                 CircularProgressIndicator(color = colors.primary)
                 Text("Cargando tus domicilios…", style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary, modifier = Modifier.padding(top = Spacing.m))
             }
-            state.homes.isEmpty() && state.error != null -> ErrorState(state.error!!, onRetry = vm::load, secondaryLabel = "Cerrar sesión", onSecondary = onSignOut)
+            state.homes.isEmpty() && state.error != null -> ErrorState(state.error!!, onRetry = vm::load)
             state.homes.isEmpty() -> EmptyState(
                 icon = R.drawable.ic_home,
                 title = "Sin domicilios disponibles",
-                message = "Tu cuenta no tiene una membresía activa en ningún domicilio. Pide acceso a la persona responsable.",
-                actionLabel = "Cerrar sesión",
-                onAction = onSignOut,
+                message = "El servidor no devolvió domicilios. Mientras no exista el inicio de sesión, solo se ven los " +
+                    "domicilios que el backend expone sin sesión.",
+                actionLabel = "Reintentar",
+                onAction = vm::load,
             )
             else -> LazyColumn(
                 Modifier.weight(1f).navigationBarsPadding(),
@@ -86,11 +84,6 @@ fun HomeSelectionScreen(onChosen: () -> Unit, onSignOut: () -> Unit) {
                         enabled = state.selecting == null,
                         onClick = { vm.select(membership.home.id, onChosen) },
                     )
-                }
-                item {
-                    TextButton(onClick = onSignOut, modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget)) {
-                        Text("Cerrar sesión", color = colors.textSecondary)
-                    }
                 }
             }
         }

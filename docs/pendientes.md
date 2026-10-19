@@ -26,12 +26,16 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 | R1 | Método de autenticación de Supabase Auth | Correo y contraseña, porque RF01 pide "recuperar acceso" |
 | R2 | Valores de `memberships.role` | Se conserva el texto; la app no autoriza por rol |
 | R3 | Dispositivos objetivo (versión mínima de Android) | `minSdk` 26 |
-| R4 | Validar la propuesta de interfaz (docs/ui/propuesta-frontend.md) contra el prototipo | Propuesta en Compose sobre la guía *Lunar Base* |
+| R4 | Validar la interfaz (docs/ui/interfaz-movil.md) contra los mockups móviles | Implementada según `Diseño de Interfaz móvil.pdf` |
 | R5 | ¿Se prioriza CSV (HU13), push (HU16), video (HU17) o comandos (HU18)? | No implementados |
 
 | R6 | La guía exige 4.5:1 de contraste, pero `operational` y `warning` no lo alcanzan como texto sobre blanco en tema claro | Estados como insignias rellenas con texto oscuro; tokens derivados en `CentinelaColors.kt` |
 | R7 | Poppins no tiene números tabulares (`tnum`) | Variante con dígitos de ancho fijo incluida en `res/font` |
 | R8 | Catálogo de severidades para el filtro de eventos | `critical`, `warning`, `info` (ligado a B6) |
+| R9 | El mockup incluye "Generar nueva misión", pero el expediente define la app como de consulta (§1, §7.1). ¿Crear misiones desde la app es un registro de planeación o un comando al robot? ¿Con qué contrato? | La hoja existe, pero "Guardar" no envía nada |
+| R10 | Las gráficas del mockup apilan Gas LP (ADC), metano (ADC), temperatura (°C) y humedad (%) en un mismo eje | Se grafica un canal a la vez, con su unidad (§12.5, RNF12) |
+| R11 | Lecturas "por habitación" del mockup | Requieren que el backend asigne lecturas con el plano validado (RB11); la app no lo hace |
+| R12 | Logo de la app | Sin ícono propio hasta que el equipo lo defina |
 
 ## Para IoT / firmware
 

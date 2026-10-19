@@ -1,8 +1,8 @@
 import java.util.Properties
 
 // Módulo :app — adaptadores, infraestructura Android e interfaz (Jetpack Compose).
-// Implementa los puertos de :core con supabase-kt (o con el simulador de datos, HU15) y contiene la
-// raíz de composición (shell) y la capa de presentación (ui).
+// Implementa los puertos de :core con supabase-kt y contiene la raíz de composición (shell) y la capa
+// de presentación (ui).
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.serialization)
@@ -39,9 +39,6 @@ android {
             "SUPABASE_PUBLISHABLE_KEY",
             "\"${localProperty("supabase.publishableKey")}\"",
         )
-        // Origen de datos: "supabase", "demo" o vacío (automático: Supabase si está configurado y,
-        // si no, el simulador rotulado como "Datos simulados", HU15 CDA 2).
-        buildConfigField("String", "DATA_SOURCE", "\"${localProperty("centinela.dataSource")}\"")
     }
 
     buildFeatures {

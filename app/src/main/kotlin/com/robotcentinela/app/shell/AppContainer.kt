@@ -31,17 +31,13 @@ import java.time.Clock
  * Raíz de composición: el único lugar que conoce a la vez los puertos y sus implementaciones
  * (expediente §14: "composition enlaza implementaciones").
  *
- * La inyección de dependencias es manual (ADR-002). Los adaptadores llegan en [Adapters], que puede
- * ser Supabase o el simulador de datos (ADR-005). Los casos de uso de contratos pendientes son `null`
- * cuando el origen de datos no los implementa.
+ * La inyección de dependencias es manual (ADR-002). Los adaptadores llegan en [Adapters]. Los casos de
+ * uso de contratos pendientes son `null` mientras backend no publique su contrato.
  */
 class AppContainer(
     adapters: Adapters,
     val clock: Clock,
 ) {
-    /** Origen de datos activo; la interfaz rotula los datos simulados (HU15 CDA 2). */
-    val dataSource: DataSource = adapters.dataSource
-
     // --- Adaptadores ---
     val authPort: AuthPort = adapters.auth
     private val telemetryQuery = adapters.telemetryQuery
@@ -89,8 +85,5 @@ class AppContainer(
 
         fun supabase(config: SupabaseConfig, clock: Clock = Clock.systemUTC()): AppContainer =
             AppContainer(Adapters.supabase(config, applicationScope()), clock)
-
-        fun simulated(clock: Clock = Clock.systemUTC()): AppContainer =
-            AppContainer(Adapters.simulated(clock, applicationScope()), clock)
     }
 }

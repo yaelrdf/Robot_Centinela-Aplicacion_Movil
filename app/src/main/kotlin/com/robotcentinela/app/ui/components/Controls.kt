@@ -45,16 +45,13 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-/** Título de página con subtítulo y rótulo de simulación (propuesta: "Resumen del domicilio"). */
+/** Título de página con subtítulo (propuesta: "Resumen del domicilio"). */
 @Composable
-fun ScreenTitle(title: String, subtitle: String?, simulated: Boolean, modifier: Modifier = Modifier) {
+fun ScreenTitle(title: String, subtitle: String?, modifier: Modifier = Modifier) {
     val colors = CentinelaTheme.colors
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         Text(title, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary, modifier = Modifier.semantics { heading() })
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, modifier = Modifier.weight(1f, fill = false)) }
-            if (simulated) SimulationTag()
-        }
+        subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary) }
     }
 }
 
