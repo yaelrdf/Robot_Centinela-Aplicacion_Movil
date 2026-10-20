@@ -9,20 +9,18 @@ import com.robotcentinela.app.telemetry.domain.StreamVersion
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Resultado de un snapshot (§7.4: "snapshot consistente con watermark").
+ * Resultado de una instantánea de telemetría consistente con marca de agua (watermark).
  *
- * @property records último estado conocido del robot.
- * @property watermark versión de flujo hasta la que el snapshot declara consistencia (glosario
- * §19.2); `null` si el robot todavía no tiene frames.
+ * @property records Registros que conforman el estado del robot.
+ * @property watermark Versión del flujo hasta la cual la instantánea asegura consistencia; es nulo si el robot no tiene registros previos.
  */
 data class TelemetrySnapshot(val records: List<FrameRecord>, val watermark: StreamVersion?)
 
 /**
- * Puerto de consulta de frames persistidos.
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * Corresponde a los contratos lógicos del expediente (§7.3): `GET /v1/robots/{id}/snapshot` y
- * `GET /v1/robots/{id}/frames?after_version=n`. Su implementación puede ser una consulta, una RPC o
- * una Edge Function.
+ * Puerto de salida para la consulta y recuperación de tramas de telemetría persistidas.
  */
 interface TelemetryQueryPort {
 
@@ -47,25 +45,20 @@ interface TelemetryQueryPort {
     ): List<FrameRecord>
 }
 
-/** Aviso de cambio en el flujo de un robot (Realtime). */
+/** Notificaciones de cambio en el flujo de telemetría del robot en tiempo real. */
 sealed interface TelemetryNotice {
 
-    /** La suscripción autorizada quedó confirmada (§7.4: "esperar confirmación"). */
+    /** Confirma el establecimiento de la suscripción en tiempo real. */
     data object Subscribed : TelemetryNotice
 
-    /** Se confirmó al menos un frame nuevo. El aviso no trae datos: se consultan los deltas. */
+    /** Indica la persistencia de una o más tramas nuevas en el backend. */
     data object FrameCommitted : TelemetryNotice
 
-    /** La suscripción se interrumpió. Al confirmarse otra vez, se reconcilia. */
+    /** Reporta una interrupción temporal en el canal de suscripción. */
     data class Interrupted(val reason: String) : TelemetryNotice
 }
 
-/**
- * Puerto de avisos en vivo.
- *
- * Realtime **no** es una cola durable ni un historial. Solo avisa que hay cambios confirmados; los
- * datos se obtienen siempre del [TelemetryQueryPort] (§7.3, RB26).
- */
+/** Puerto de salida para la suscripción a notificaciones de eventos en tiempo real. */
 interface TelemetryChangeNotifier {
     fun notices(robotId: RobotId): Flow<TelemetryNotice>
 }

@@ -37,7 +37,14 @@ import java.time.ZoneId
 @Composable
 fun EventsScreen(robot: Robot, zone: ZoneId, onOpenAlert: (Alert) -> Unit, onChangeHome: () -> Unit) {
     val deps = uiDependencies
-    val vm: EventsViewModel = viewModel { EventsViewModel(deps.container, robot, zone) }
+    val vm: EventsViewModel = viewModel {
+        EventsViewModel(
+            queryAlertHistory = deps.container.queryAlertHistory,
+            clock = deps.container.clock,
+            robot = robot,
+            zone = zone,
+        )
+    }
     val state by vm.state.collectAsStateWithLifecycle()
     val colors = CentinelaTheme.colors
 

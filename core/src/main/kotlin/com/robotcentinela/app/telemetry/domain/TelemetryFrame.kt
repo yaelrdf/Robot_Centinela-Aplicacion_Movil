@@ -9,24 +9,33 @@ import com.robotcentinela.app.robothealth.domain.RobotReportedState
 import java.time.Instant
 
 /**
- * Frame de telemetría persistido: el conjunto de muestras de un instante, con su identidad y
- * contexto de captura (glosario §19.2).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * Replica la estructura de `JSON_estructura.txt` (`schema_version` 1.1) más los dos campos que asigna
- * el backend al persistir (§7.2): [receivedAt] y [streamVersion]. El diccionario completo de campos
- * está en `docs/data_dictionary/frame-telemetria-v1.md`.
+ * Trama de telemetría persistida: representa el conjunto de muestras registradas en un instante,
+ * junto con su identidad y contexto de captura en el robot.
  *
- * Un frame se presenta completo: no se mezcla la temperatura de uno con el gas de otro sin su marca
- * temporal (§7.4).
+ * Cada trama se procesa de forma completa, preservando la coherencia temporal de todas sus lecturas
+ * sin intercalar mediciones entre diferentes instantes de captura.
  *
- * @property sequence orden de captura dentro de [bootId], asignado por el firmware.
- * @property capturedAt hora de captura del dispositivo; `null` si falta. Nunca la inventa el cliente.
- * @property monotonicMs tiempo relativo del dispositivo, útil cuando el reloj no está sincronizado.
- * @property pose pose estimada; `null` = sin localización. No invalida las lecturas, solo su
- * ubicación (§7.2).
- * @property motorsActive orden o estado reportado. No prueba un giro efectivo sin encoder (§7.0).
- * @property receivedAt instante en que el backend recibió el frame.
- * @property streamVersion cursor de commit por robot.
+ * @property id Identificador único de la trama.
+ * @property schemaVersion Versión del esquema de telemetría.
+ * @property deviceId Identificador del dispositivo emisor.
+ * @property bootId Identificador de la sesión de arranque del microcontrolador.
+ * @property sequence Número de secuencia incremental asignado por el firmware dentro de la sesión actual.
+ * @property capturedAt Marca de tiempo de captura reportada por el dispositivo; es nula si no se dispone de reloj.
+ * @property monotonicMs Tiempo monotónico relativo en milisegundos desde el inicio del microcontrolador.
+ * @property clockQuality Calidad y sincronización del reloj del dispositivo en el momento de la captura.
+ * @property missionId Identificador de la misión en curso durante la captura, si aplica.
+ * @property mapVersionId Identificador de la versión del plano cartográfico asociado.
+ * @property pose Coordenadas y orientación estimada del robot en el plano.
+ * @property readings Lista de lecturas ambientales registradas por los sensores del robot.
+ * @property battery Nivel y estado de carga de la batería del dispositivo.
+ * @property robotState Estado operativo reportado por el robot.
+ * @property motorsActive Indicador del estado de tracción o activación de motores.
+ * @property firmwareVersion Versión del firmware del robot.
+ * @property receivedAt Marca de tiempo en que el backend persistió la trama.
+ * @property streamVersion Versión secuencial del flujo de eventos por robot.
  */
 data class TelemetryFrame(
     val id: FrameId,

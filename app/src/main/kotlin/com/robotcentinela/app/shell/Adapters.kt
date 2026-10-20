@@ -19,10 +19,11 @@ import com.robotcentinela.app.telemetry.ports.TelemetryQueryPort
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * Implementaciones de los puertos de `:core`.
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * Los puertos cuyo contrato está pendiente son opcionales (`null`): la interfaz muestra entonces un
- * estado explícito de "pendiente de backend" en lugar de inventar datos (docs/pendientes.md).
+ * Contenedor de instancias de adaptadores de infraestructura que implementan los puertos secundarios del núcleo.
+ * Los puertos con contratos aún no definidos en backend se mantienen opcionales (nulos) de forma explícita.
  */
 class Adapters(
     val auth: AuthPort,
@@ -30,6 +31,9 @@ class Adapters(
     val telemetryQuery: TelemetryQueryPort,
     val telemetryNotifier: TelemetryChangeNotifier,
     val alertQuery: AlertQueryPort,
+    // [PENDIENTE DE CONTRATO REAL]: Capacidades, agregados métricos, planos cartográficos y misiones
+    // aún no cuentan con endpoints o tablas publicadas en el backend/robot. Se mantienen como null
+    // para indicar explícitamente a la UI el estado "pendiente de backend" sin usar datos inventados.
     val capabilities: CapabilitiesPort? = null,
     val aggregates: MetricAggregatePort? = null,
     val floorPlans: FloorPlanPort? = null,
@@ -37,7 +41,7 @@ class Adapters(
 ) {
     companion object {
 
-        /** Adaptadores de Supabase. Capacidades, agregados, planos y misiones esperan su contrato (B8, B9). */
+        /** Adaptadores de Supabase conectados al backend real. Capacidades, agregados, planos y misiones esperan definición de contrato. */
         fun supabase(config: SupabaseConfig, scope: CoroutineScope): Adapters {
             val client = SupabaseClientFactory.create(config)
             return Adapters(

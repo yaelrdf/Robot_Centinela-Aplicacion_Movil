@@ -6,10 +6,10 @@ import com.robotcentinela.app.missions.domain.MissionSummary
 import com.robotcentinela.app.shared.PageRequest
 
 /**
- * Puerto de solo lectura de misiones (RF14, RF33).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * **PROVISIONAL.** El contrato está pendiente (docs/pendientes.md). Hoy solo lo implementa el
- * simulador de datos (HU15).
+ * Puerto de salida para la consulta y obtención de información resumida sobre las misiones de patrullaje del robot.
  */
 interface MissionQueryPort {
 

@@ -7,11 +7,13 @@ import com.robotcentinela.app.shared.PageRequest
 import com.robotcentinela.app.shared.UtcInterval
 
 /**
- * Filtros del historial de alertas (RF16: "fecha, tipo, severidad, robot y estado").
+ * Filtros aplicables a la consulta del historial de alertas e incidentes.
  *
- * Un conjunto vacío significa "sin filtro" para ese campo.
- *
- * @property interval periodo en UTC sobre `opened_at`; `null` = sin límite temporal.
+ * @property robotId Identificador del robot asociado a las alertas.
+ * @property interval Intervalo temporal en UTC respecto a la fecha de apertura; es nulo para consultar sin restricción de tiempo.
+ * @property types Conjunto de tipos de alerta a filtrar.
+ * @property severities Conjunto de niveles de severidad a filtrar.
+ * @property states Conjunto de estados de ciclo de vida de la alerta.
  */
 data class AlertFilter(
     val robotId: RobotId,
@@ -21,7 +23,12 @@ data class AlertFilter(
     val states: Set<AlertState> = emptySet(),
 )
 
-/** Puerto de solo lectura de alertas persistidas (RF15, RF16, RB25: el lector no modifica). */
+/**
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
+ *
+ * Puerto de salida para la consulta y filtrado del historial de incidentes y alertas del robot.
+ */
 interface AlertQueryPort {
 
     /** Alertas que cumplen [filter], de la más reciente a la más antigua por `opened_at`. */

@@ -68,9 +68,16 @@ data class HistoryUiState(
 )
 
 /**
- * Historial por fechas (HU07). Las fechas son días locales del domicilio; los casos de uso las
- * convierten a UTC (CDA 1) y solo consultan robots del domicilio actual (CDA 2). Los agregados los
- * calcula el servidor cuando su contrato existe (CDA 3).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
+ *
+ * Modelo de vista para la visualización gráfica y tabular del historial de telemetría.
+ *
+ * [ESTADO DE FUENTES DE DATOS]:
+ * - Frames de telemetría: Conectados a la persistencia real de frames en backend.
+ * - [PENDIENTE DE CONTRATO REAL]: Agregados estadísticos del servidor (MetricAggregatePort) y
+ *   catálogo formal de capacidades (CapabilitiesPort). Si no están presentes, la aplicación calcula
+ *   la interpretación básica de las lecturas registradas.
  */
 class HistoryViewModel(
     private val container: AppContainer,

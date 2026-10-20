@@ -38,11 +38,12 @@ import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 
 /**
- * Hoja "Nueva misión" del mockup: propósito, estaciones y tiempo estimado.
+ * Hoja "Nueva misión": interfaz gráfica para la captura de propósito, estaciones y tiempo estimado.
  *
- * Todavía no hay contrato en el backend para crear misiones, ni plano con estaciones para elegirlas.
- * Además, el expediente define la app como de consulta: el robot se inicia y se detiene localmente
- * (§1, §7.1). Por eso "Guardar" no envía nada; avisa que la función está pendiente de definición.
+ * [PENDIENTE DE CONTRATO / DUMMY OPERATIVO]:
+ * Actualmente no existe contrato ni canal de comandos hacia el robot para iniciar misiones remotamente.
+ * El botón "Guardar" no despacha eventos a la red; únicamente despliega un aviso informando que
+ * la acción requiere integración de comandos directos con el dispositivo centinela.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

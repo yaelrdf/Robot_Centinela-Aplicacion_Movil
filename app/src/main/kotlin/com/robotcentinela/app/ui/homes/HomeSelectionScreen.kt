@@ -40,7 +40,12 @@ import com.robotcentinela.app.ui.theme.Spacing
 @Composable
 fun HomeSelectionScreen(onChosen: () -> Unit) {
     val deps = uiDependencies
-    val vm: HomeSelectionViewModel = viewModel { HomeSelectionViewModel(deps.container) }
+    val vm: HomeSelectionViewModel = viewModel {
+        HomeSelectionViewModel(
+            listAuthorizedHomes = deps.container.listAuthorizedHomes,
+            selectHomeScope = deps.container.selectHomeScope,
+        )
+    }
     val state by vm.state.collectAsStateWithLifecycle()
     val colors = CentinelaTheme.colors
 

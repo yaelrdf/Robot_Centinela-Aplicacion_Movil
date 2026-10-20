@@ -5,10 +5,10 @@ import com.robotcentinela.app.identity.domain.HomeMembership
 import com.robotcentinela.app.identity.domain.Robot
 
 /**
- * Puerto de consulta de membresías y robots de la persona autenticada (RF02).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * El servidor filtra por RLS; el adaptador no debe aceptar un `user_id` arbitrario como
- * autorización (§13.5).
+ * Puerto de salida para la consulta de membresías de domicilios y robots asociados al usuario autenticado.
  */
 interface HomeScopePort {
 

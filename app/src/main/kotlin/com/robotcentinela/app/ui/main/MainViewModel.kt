@@ -136,10 +136,16 @@ private data class AlertExtras(
 )
 
 /**
- * Sesión en vivo del robot seleccionado (HU02 a HU06, HU08).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * La sincronización solo corre mientras la pantalla está visible: [onStart] y [onStop] la reanudan y
- * detienen; al volver de segundo plano se reconcilia desde la última versión aplicada (RB28).
+ * Modelo de vista principal que orquesta la sesión en vivo y el monitoreo del robot centinela.
+ *
+ * [ESTADO DE FLUJOS OPERATIVOS]:
+ * - Telemetría en tiempo real: Conectada al backend (Supabase Realtime y deltas).
+ * - Historial de incidentes y alertas: Conectado a la tabla de alertas del backend.
+ * - [PENDIENTE DE CONTRATO DEL ROBOT]: FloorPlan (planos cartográficos) y Missions (misiones de patrullaje),
+ *   cuyos puertos aún no cuentan con tablas ni endpoints desplegados en el backend/robot.
  */
 class MainViewModel(private val container: AppContainer, private val scope: HomeScope) : ViewModel() {
 

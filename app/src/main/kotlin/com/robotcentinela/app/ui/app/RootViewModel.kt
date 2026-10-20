@@ -26,6 +26,12 @@ sealed interface RootState {
     data class Ready(val scope: HomeScope) : RootState
 }
 
+/**
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
+ *
+ * Modelo de vista raíz que determina la pantalla inicial o activa según el domicilio seleccionado.
+ */
 class RootViewModel(container: AppContainer) : ViewModel() {
 
     private val choosingHome = MutableStateFlow(false)

@@ -8,19 +8,20 @@ import com.robotcentinela.app.shared.UtcInterval
 import kotlin.time.Duration
 
 /**
- * Puerto del catálogo de capacidades (RF05; contrato lógico `GET /v1/robots/{id}/capabilities`, §7.3).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * Esta versión todavía no tiene adaptador: el contrato del endpoint está pendiente
- * (docs/pendientes.md). Mientras tanto la app interpreta las lecturas sin unidad de catálogo.
+ * Puerto de salida para la consulta del catálogo de capacidades y especificaciones de sensores del robot.
  */
 interface CapabilitiesPort {
     suspend fun capabilitiesOf(robotId: RobotId): List<ChannelCapability>
 }
 
 /**
- * Puerto de agregados calculados en el servidor (HU07 CDA 3, RF10, §13.4).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * Esta versión todavía no tiene adaptador: el contrato está pendiente (docs/pendientes.md).
+ * Puerto de salida para la recuperación de agregados estadísticos y métricas consolidadas calculadas por el servidor.
  */
 interface MetricAggregatePort {
     suspend fun aggregates(

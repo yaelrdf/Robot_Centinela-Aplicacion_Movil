@@ -8,8 +8,10 @@ import com.robotcentinela.app.identity.ports.HomeScopePort
 import com.robotcentinela.app.shared.NotInScopeException
 
 /**
- * Caso de uso: listar los domicilios donde la persona tiene membresía activa (RF02: "El usuario ve
- * únicamente domicilios y robots para los que tiene membresía activa").
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
+ *
+ * Caso de uso: Consulta de domicilios donde el usuario posee una membresía activa autorizada.
  */
 class ListAuthorizedHomes(private val port: HomeScopePort) {
 
@@ -18,10 +20,10 @@ class ListAuthorizedHomes(private val port: HomeScopePort) {
 }
 
 /**
- * Caso de uso: seleccionar explícitamente el domicilio que se va a consultar (RF02, HU01).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * Solo admite domicilios con membresía activa. Al cambiar de domicilio se reemplaza el ámbito
- * completo, así que no se conservan robots del domicilio anterior.
+ * Caso de uso: Selección explícita del domicilio operativo y carga de sus robots asociados.
  */
 class SelectHomeScope(
     private val port: HomeScopePort,

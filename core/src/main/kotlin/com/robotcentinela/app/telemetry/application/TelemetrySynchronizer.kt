@@ -27,28 +27,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * Caso de uso: sincronizar en vivo la telemetría de un robot (HU03, RF07, RF08, RB19, RB26 a RB28).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * Aplica el algoritmo del expediente (§7.4), detallado en
- * `docs/architecture/sincronizacion-telemetria.md`:
- * 1. Abre la suscripción y espera su confirmación ([TelemetryNotice.Subscribed]).
- * 2. Pide un snapshot con watermark y lo aplica.
- * 3. Pide los deltas posteriores (`after_version`), paginados y ordenados por `stream_version`.
- * 4. Cada aviso de Realtime dispara una consulta de deltas; el aviso nunca trae datos (RB26).
- * 5. Al reconectar, continúa desde `lastAppliedVersion`. Si hay un hueco en el cursor, los frames
- *    intermedios se eliminaron por retención: aplica un snapshot completo y marca
- *    [TelemetrySyncState.historyLimited] (RB26, T08). Para detectar el hueco se apoya en que el
- *    backend incrementa `stream_version` de uno en uno por frame aceptado (§7.4, §13.6).
- * 6. Reconcilia periódicamente ([SyncConfig.reconciliationInterval]) para cubrir avisos omitidos.
+ * Caso de uso: Sincronización en tiempo real del flujo de telemetría de un robot centinela.
  *
- * Garantías:
- * - Deduplica por `stream_version` y `frame_id`: un frame repetido no se aplica dos veces y no
- *   produce parpadeo ni puntos duplicados (HU03 CDA 3).
- * - Un aviso que llega antes de la respuesta HTTP no hace retroceder el estado, porque nunca se
- *   aplica una versión menor o igual a la última aplicada.
- *
- * Una instancia sincroniza un solo robot. Debe crearse para un robot del ámbito seleccionado
- * ([com.robotcentinela.app.identity.application.CurrentHomeScope]).
+ * Coordina la obtención de instantáneas consistentes, la suscripción a eventos en tiempo real
+ * y la reconciliación continua de deltas de telemetría mediante los puertos de consulta y notificación.
  */
 class TelemetrySynchronizer(
     val robotId: RobotId,

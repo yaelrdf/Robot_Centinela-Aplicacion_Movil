@@ -3,10 +3,10 @@ package com.robotcentinela.app.ui.events
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.robotcentinela.app.identity.domain.Robot
+import com.robotcentinela.app.incidents.application.QueryAlertHistory
 import com.robotcentinela.app.incidents.domain.Alert
 import com.robotcentinela.app.incidents.domain.AlertState
 import com.robotcentinela.app.shared.PageRequest
-import com.robotcentinela.app.shell.AppContainer
 import com.robotcentinela.app.ui.model.DateRange
 import com.robotcentinela.app.ui.model.RangePreset
 import kotlinx.coroutines.CancellationException
@@ -16,25 +16,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
 
-/**
- * Severidades que ofrece el filtro. El catálogo de `alerts.severity` no está publicado (pendiente B6):
- * se filtra por los valores del simulador y del ejemplo del expediente.
- */
+/** Severidades que ofrece el filtro de eventos e incidentes. */
 internal enum class SeverityFilter(val raw: String, val label: String) {
     Critical("critical", "Crítica"),
     Warning("warning", "Advertencia"),
     Info("info", "Informativa"),
 }
 
+/** Estados disponibles para el filtrado del ciclo de vida de alertas. */
 internal enum class StateFilter(val state: AlertState, val label: String) {
     Open(AlertState.Open, "Abiertas"),
     Acknowledged(AlertState.Acknowledged, "Atendidas"),
     Resolved(AlertState.Resolved, "Resueltas"),
 }
 
+/** Estado de la interfaz de usuario para la pantalla de eventos y alertas. */
 data class EventsUiState(
     val range: DateRange,
     val severities: Set<String> = emptySet(),
@@ -46,10 +46,21 @@ data class EventsUiState(
     val error: Throwable? = null,
 )
 
-/** Historial de eventos por fechas y tipo (HU07, RF16). */
-class EventsViewModel(private val container: AppContainer, private val robot: Robot, zone: ZoneId) : ViewModel() {
+/**
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
+ *
+ * Modelo de vista para el historial de eventos e incidentes del robot.
+ * Consume directamente el caso de uso QueryAlertHistory.
+ */
+class EventsViewModel(
+    private val queryAlertHistory: QueryAlertHistory,
+    clock: Clock,
+    private val robot: Robot,
+    zone: ZoneId,
+) : ViewModel() {
 
-    private val today = LocalDate.now(container.clock.withZone(zone))
+    private val today = LocalDate.now(clock.withZone(zone))
     private val mutable = MutableStateFlow(EventsUiState(range = DateRange.of(RangePreset.Last30Days, today)))
     val state: StateFlow<EventsUiState> = mutable.asStateFlow()
     private var job: Job? = null
@@ -87,7 +98,7 @@ class EventsViewModel(private val container: AppContainer, private val robot: Ro
         val filters = mutable.value
         job = viewModelScope.launch {
             try {
-                val result = container.queryAlertHistory(
+                val result = queryAlertHistory(
                     robotId = robot.id,
                     page = PageRequest(PAGE_SIZE + 1, filters.page.toLong() * PAGE_SIZE),
                     from = filters.range.from,

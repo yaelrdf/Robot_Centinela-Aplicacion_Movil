@@ -31,7 +31,16 @@ data class MissionsUiState(
     val error: Throwable? = null,
 )
 
-/** Lista paginada de misiones (RF14). */
+/**
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
+ *
+ * Modelo de vista para la consulta y paginación de misiones del robot.
+ *
+ * [PENDIENTE DE CONTRATO REAL]:
+ * El backend y el robot aún no tienen publicado el contrato de misiones (listMissions == null).
+ * La interfaz muestra el estado explícito de "soporte pendiente" en lugar de simular ejecuciones.
+ */
 class MissionsViewModel(private val container: AppContainer, private val robot: Robot) : ViewModel() {
 
     private val mutable = MutableStateFlow(MissionsUiState(supported = container.listMissions != null))

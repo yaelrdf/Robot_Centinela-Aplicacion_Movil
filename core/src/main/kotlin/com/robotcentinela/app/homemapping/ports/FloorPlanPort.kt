@@ -5,10 +5,10 @@ import com.robotcentinela.app.homemapping.domain.MapVersionId
 import com.robotcentinela.app.identity.domain.RobotId
 
 /**
- * Puerto de consulta de la geometría de una versión de mapa (HU05, RF11, RF32).
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * **PROVISIONAL.** El contrato de mapas (formato y Storage privado con URL firmada) está pendiente
- * (docs/pendientes.md). Hoy solo lo implementa el simulador de datos (HU15).
+ * Puerto de salida para la recuperación de la geometría y estaciones del plano cartográfico de un robot.
  */
 interface FloorPlanPort {
 

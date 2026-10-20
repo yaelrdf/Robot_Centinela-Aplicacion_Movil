@@ -4,11 +4,10 @@ import com.robotcentinela.app.identity.domain.SessionState
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Puerto de autenticación de personas (RF01: "iniciar y cerrar sesión y recuperar acceso
- * mediante Supabase Auth").
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * El método de credenciales no está fijado en la documentación. Esta versión usa correo y
- * contraseña porque RF01 pide "recuperar acceso" (ver docs/pendientes.md).
+ * Puerto de salida para las operaciones de autenticación y gestión de sesión de usuarios.
  */
 interface AuthPort {
 

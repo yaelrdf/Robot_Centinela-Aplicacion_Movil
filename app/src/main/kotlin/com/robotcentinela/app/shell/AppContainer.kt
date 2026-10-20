@@ -28,11 +28,13 @@ import kotlinx.coroutines.SupervisorJob
 import java.time.Clock
 
 /**
- * Raíz de composición: el único lugar que conoce a la vez los puertos y sus implementaciones
- * (expediente §14: "composition enlaza implementaciones").
+ * Instituto Politécnico Nacional
+ * Unidad Profesional Interdisciplinaria de Ingeniería Ciencias Sociales y Administrativas
  *
- * La inyección de dependencias es manual (ADR-002). Los adaptadores llegan en [Adapters]. Los casos de
- * uso de contratos pendientes son `null` mientras backend no publique su contrato.
+ * Raíz de composición de la aplicación.
+ *
+ * Centraliza la instanciación de casos de uso del dominio y su enlace con los adaptadores de infraestructura
+ * mediante inyección manual de dependencias.
  */
 class AppContainer(
     adapters: Adapters,
