@@ -1,0 +1,47 @@
+# Supabase: esquema, políticas y datos de prueba
+
+| Archivo | Qué es | Quién lo aplica |
+|---|---|---|
+| `esquema-supabase-equipo.sql` | Copia de referencia del esquema que compartió el equipo (21 de octubre de 2026), sin cambios | Backend |
+| `propuesta-politicas-lectura.sql` | **Propuesta**: políticas RLS de solo lectura por membresía activa, índices y Realtime | Backend (revisar y aplicar) |
+| `datos-de-prueba.sql` | Un domicilio, un robot, una misión, el catálogo de canales, 30 frames y 2 alertas para probar la app | Quien prueba, en un proyecto de pruebas |
+
+## Por qué hacen falta las políticas
+
+El esquema habilita RLS en las 14 tablas, pero no crea políticas. Con RLS activo y sin políticas,
+Supabase no entrega ninguna fila a web ni a móvil: la app se conecta pero todo sale vacío. La
+propuesta da acceso de **lectura** solo a usuarios autenticados con membresía `active` en el domicilio.
+Nadie del lado cliente puede escribir: la ingesta escribe con su propia credencial de servidor.
+
+## Cómo probar la app con datos
+
+1. En el SQL Editor de Supabase, corre en orden `esquema-supabase-equipo.sql` (si no está aplicado) y
+   `propuesta-politicas-lectura.sql`.
+2. En **Authentication > Users > Add user**, crea un usuario de prueba con correo y contraseña.
+3. Cambia `v_email` en `datos-de-prueba.sql` por ese correo y córrelo (una sola vez).
+4. En `local.properties` de la app:
+   ```properties
+   supabase.url=https://<proyecto>.supabase.co
+   supabase.publishableKey=<clave pública: anon o sb_publishable_...>
+   centinela.devEmail=<correo del usuario de prueba>
+   centinela.devPassword=<contraseña del usuario de prueba>
+   ```
+5. Ejecuta la app (build debug). Entra sola con la cuenta de prueba y muestra "Casa de pruebas".
+
+Nunca uses la clave `service_role` ni una `sb_secret_...` en la app: la app las rechaza al arrancar.
+
+## Cómo se probó
+
+Los tres archivos se aplicaron en PostgreSQL 17 (PGlite) con un esquema `auth` mínimo, como el de
+Supabase. Resultados:
+
+- El esquema del equipo se aplica sin errores.
+- El usuario con membresía activa ve su domicilio, su robot, los 10 canales, la misión, las 2 alertas y
+  el frame más reciente completo (10 lecturas, pose, batería, estado y sesión de arranque).
+- Un usuario sin membresía no ve ninguna fila en las 14 tablas; el rol `anon` (sin sesión) tampoco.
+- Al marcar la membresía como `inactive`, el usuario deja de ver la telemetría.
+- `telemetry_frames` queda en la publicación de Realtime.
+
+El frame que devolvió esa prueba se guardó como fixture
+(`app/src/test/resources/fixtures/telemetry/frame_supabase_embebido.json`) y las pruebas de
+`NormalizedFrameAssemblerTest` verifican que la app lo interpreta igual que `JSON_estructura.txt`.

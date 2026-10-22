@@ -9,19 +9,22 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
 
 ## Cómo correrla
 
-1. Copia `local.properties.example` como `local.properties` y completa `supabase.url` y
-   `supabase.publishableKey` (clave **pública**; nunca `service_role` ni `sb_secret_`).
+1. Copia `local.properties.example` como `local.properties` y completa `supabase.url`,
+   `supabase.publishableKey` (clave **pública**; nunca `service_role` ni `sb_secret_`) y la cuenta de
+   prueba `centinela.devEmail` y `centinela.devPassword` (ver `docs/backend/README.md`).
 2. Abre el proyecto en Android Studio (AGP 9.4, SDK de Android 37) y ejecuta `app`.
-3. Elige el domicilio. El inicio de sesión se integra al final del proyecto (indicación del equipo).
+3. La app entra sola con la cuenta de prueba (solo debug) y muestra los domicilios. La pantalla de
+   inicio de sesión se integra al final del proyecto (indicación del equipo); RLS exige una sesión
+   para entregar datos, por eso existe la cuenta de prueba.
 
 ## Pantallas y conexión con el backend
 
 | Pantalla | Qué muestra | Origen de los datos |
 |---|---|---|
 | Elegir domicilio | Domicilios visibles y su zona horaria | Supabase: `memberships`, `homes`, `robots` |
-| Resumen | Gas LP, metano, temperatura y humedad (valor, "Última lectura", calidad); Operación (batería y estaciones); mapa; Eventos y Avisos | Telemetría en vivo (snapshot + deltas por `stream_version` + Realtime) y alertas |
-| Mapa | Misión en curso, estaciones, sensores, batería, mapa con pose e incertidumbre, habitaciones | Pose y batería: telemetría. Misión, plano y habitaciones: **pendiente de backend** |
-| Misiones | Detalles de misión, mapa de la misión, tarjetas de misiones, "Nueva misión" | **Pendiente de backend** (contrato de misiones). "Guardar" no envía nada (ver R9) |
+| Resumen | Gas LP, metano, temperatura y humedad (valor, unidad, "Última lectura", calidad); Operación (batería y estaciones); mapa; Eventos y Avisos | Telemetría en vivo (`telemetry_frames` y sus tablas hijas, deltas por `stream_version` + Realtime), unidades de `channels` y alertas |
+| Mapa | Misión en curso, estaciones, sensores, batería, mapa con pose e incertidumbre, habitaciones | Pose y batería: telemetría. Misión: `missions`. Plano (archivo del mapa) y habitaciones: **pendiente de backend** |
+| Misiones | Detalles de misión, mapa de la misión, tarjetas de misiones, "Nueva misión" | `missions` (inicio, fin, estado) y trayectoria de la telemetría. Nombre y estaciones: **pendiente** (B16). "Guardar" no envía nada (ver R9) |
 | Historial | Alertas registradas por severidad; "Lectura general" del canal elegido con máxima, mínima y promedio | Alertas y frames históricos de Supabase. Misiones, horas de operación y calibraciones: **pendiente** |
 | Eventos (campana) | Alertas con filtros de periodo, severidad y estado; detalle de cada evento | Supabase: alertas |
 | Ajustes (engrane) | Tema claro, oscuro o del sistema; cambio de domicilio | Local |

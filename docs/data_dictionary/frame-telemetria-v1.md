@@ -68,17 +68,28 @@ catálogo de capacidades (RF05, pendiente).
 | otro valor | `Uncertain`: se conserva el valor, pero no se afirma su validez |
 | (valor `null` con calidad válida, estimada o sin calibrar) | `NoData` ("Sin dato"), nunca 0 (RB04, RB09) |
 
-## Campos asignados por el backend (PROVISIONALES)
+## Esquema de Supabase (cómo se guarda el frame)
 
-No forman parte del payload del dispositivo. El backend los agrega al persistir (§7.2: "El backend
-asigna received_at y stream_version"). Mientras backend no publique su contrato, la app espera que
-el recurso `telemetry_frames_v1` los entregue al nivel superior de cada fila:
+El equipo compartió el esquema SQL (`docs/backend/esquema-supabase-equipo.sql`). El frame no se guarda
+como JSON: se reparte en tablas. La app pide `telemetry_frames` con sus hijas embebidas
+(`NormalizedFrameAssembler.SELECT`) y las vuelve a la forma de arriba antes de interpretarlas.
 
-| Campo | Tipo | Uso en la app |
+| Campo del frame | Tabla y columna | Nota |
 |---|---|---|
-| `robot_id` | UUID | Filtro de consulta y de Realtime |
-| `received_at` | RFC3339 | Ingesta interrumpida tras 10 s sin datos (RNF04) y orden aproximado si el reloj no es confiable. Si falta, el frame se rechaza |
-| `stream_version` | entero ≥ 0 | Cursor de sincronización (§7.4). Si falta, la fila incumple el contrato |
+| `event_id` | `telemetry_frames.id` | |
+| `robot_id`, `mission_id`, `sequence`, `captured_at`, `monotonic_ms`, `clock_quality` | `telemetry_frames` | |
+| `received_at`, `stream_version` | `telemetry_frames` | Los asigna el backend al guardar (§7.2) |
+| `schema_version` | — | No se guarda; se asume 1.1 (pendiente B13) |
+| `device_id`, `firmware_version` | `devices.id`, `devices.firmware_version` (vía `device_sessions`) | Firmware actual del dispositivo, no por frame (B14, B17) |
+| `boot_id` | `device_sessions.boot_id` | |
+| `map_version_id`, `pose.*` | `frame_poses` | Sin fila = sin pose; nunca se dibuja en el origen |
+| `readings[]` | `sensor_readings` + `channels.channel_key` | Una fila por canal |
+| `battery.voltage_v`, `soc_pct`, `current_a` | `battery_readings` | |
+| `battery.quality` (método) | `battery_readings.method_code` | Pendiente B15 |
+| `robot_state`, `motors_active` | `robot_states.reported_state`, `robot_states.motors_active` | |
+
+La unidad y el tipo de cada canal vienen de `channels.unit_code` y `channels.metric_type` (catálogo de
+capacidades, RF05). La lectura está protegida por RLS: ver `docs/backend/propuesta-politicas-lectura.sql`.
 
 ## Compatibilidad
 

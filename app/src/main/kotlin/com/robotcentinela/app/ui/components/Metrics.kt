@@ -153,6 +153,7 @@ fun OperationCard(
     battery: BatteryModel,
     stations: String?,
     lastUpdate: String?,
+    missionsSupported: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val colors = CentinelaTheme.colors
@@ -174,7 +175,11 @@ fun OperationCard(
                     Text(stations ?: "—", style = MaterialTheme.typography.titleLarge)
                 }
                 Text(
-                    if (stations == null) "Misiones pendientes de backend" else "Última actualización: ${lastUpdate ?: "sin datos"}",
+                    when {
+                        stations != null -> "Última actualización: ${lastUpdate ?: "sin datos"}"
+                        missionsSupported -> "Sin misión en curso"
+                        else -> "Misiones pendientes de backend"
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.textSecondary,
                 )

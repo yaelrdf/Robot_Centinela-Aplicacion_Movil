@@ -6,3 +6,9 @@ supabase.url=https://tu-proyecto.supabase.co
 
 # Clave PÚBLICA del cliente (anon/publishable). Nunca uses service_role ni una clave sb_secret_.
 supabase.publishableKey=sb_publishable_valor_ficticio
+
+# Cuenta de PRUEBA de Supabase Auth (solo builds debug). RLS solo deja leer a usuarios autenticados con
+# membresía activa, y la pantalla de inicio de sesión se hace al final del proyecto: mientras tanto la
+# app entra sola con esta cuenta. Usa una cuenta creada para pruebas, nunca la de una persona real.
+centinela.devEmail=prueba@ejemplo.com
+centinela.devPassword=contraseña_de_prueba

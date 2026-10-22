@@ -25,6 +25,14 @@
 6. Un frame que no cumple el contrato se devuelve como `FrameRecord.Rejected`. El cursor avanza y el
    rechazo se cuenta, en lugar de detener la sincronización.
 
+## Actualización (21 de octubre de 2026)
+
+El equipo compartió el esquema SQL de Supabase (`docs/backend/esquema-supabase-equipo.sql`). El frame
+se guarda **normalizado** en `telemetry_frames` y sus tablas hijas, no como una vista con la forma del
+JSON. La app ya no usa `telemetry_frames_v1`: consulta `telemetry_frames` con sus hijas embebidas y
+`NormalizedFrameAssembler` las reconstruye en el frame v1, así el mapeador y sus reglas no cambian.
+Las alertas se leen sin `rule_id` (no existe en el esquema).
+
 ## Consecuencias
 
 - Cuando backend publique su contrato, el cambio se limita a `SupabaseResources.kt` y a los DTO.

@@ -1,0 +1,135 @@
+{
+  "id": "9f225860-42f2-4cd0-8c3a-e4e970395307",
+  "robot_id": "22222222-2222-4222-8222-222222222222",
+  "mission_id": "0354909f-cc35-4ebc-822d-bfffeaa80374",
+  "sequence": 1843,
+  "captured_at": "2026-10-11T15:24:12+00:00",
+  "received_at": "2026-10-11T15:24:13.25+00:00",
+  "monotonic_ms": 929450,
+  "clock_quality": "synced",
+  "stream_version": 30,
+  "device_sessions": {
+    "boot_id": "b503cb0b-3866-491b-aebc-e164ea73d9aa",
+    "devices": {
+      "id": "bf8d0f7d-f739-4529-9a8a-5975f5b26960",
+      "firmware_version": "0.2.0"
+    }
+  },
+  "sensor_readings": [
+    {
+      "value": 1860,
+      "boolean_value": null,
+      "quality": "uncalibrated",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "mq6_raw"
+      }
+    },
+    {
+      "value": 1420,
+      "boolean_value": null,
+      "quality": "uncalibrated",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "mq4_raw"
+      }
+    },
+    {
+      "value": null,
+      "boolean_value": null,
+      "quality": "not_installed",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "mq7_raw"
+      }
+    },
+    {
+      "value": 24.6,
+      "boolean_value": null,
+      "quality": "valid",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "temperature"
+      }
+    },
+    {
+      "value": 48.1,
+      "boolean_value": null,
+      "quality": "valid",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "humidity"
+      }
+    },
+    {
+      "value": 0.45,
+      "boolean_value": null,
+      "quality": "valid",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "front_distance_m"
+      }
+    },
+    {
+      "value": null,
+      "boolean_value": true,
+      "quality": "valid",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "ir_floor_front_left"
+      }
+    },
+    {
+      "value": null,
+      "boolean_value": true,
+      "quality": "valid",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "ir_floor_front_right"
+      }
+    },
+    {
+      "value": null,
+      "boolean_value": true,
+      "quality": "valid",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "ir_floor_rear_left"
+      }
+    },
+    {
+      "value": null,
+      "boolean_value": true,
+      "quality": "valid",
+      "calibration_id": null,
+      "channels": {
+        "channel_key": "ir_floor_rear_right"
+      }
+    }
+  ],
+  "frame_poses": {
+    "frame_id": "9f225860-42f2-4cd0-8c3a-e4e970395307",
+    "map_version_id": "ecb3df81-477f-4e72-92c6-8b38f856cdb5",
+    "x_m": 2.15,
+    "y_m": 1.4,
+    "theta_rad": 0.28,
+    "sigma_position_m": 0.08,
+    "sigma_heading_rad": null,
+    "quality": "estimated"
+  },
+  "battery_readings": {
+    "frame_id": "9f225860-42f2-4cd0-8c3a-e4e970395307",
+    "voltage_v": 11.41,
+    "current_a": null,
+    "soc_pct": null,
+    "method_code": "voltage_only",
+    "quality": "valid"
+  },
+  "robot_states": {
+    "frame_id": "9f225860-42f2-4cd0-8c3a-e4e970395307",
+    "navigation_state": "moving",
+    "reported_state": "moving",
+    "motors_active": true,
+    "wifi_rssi_dbm": null
+  }
+}

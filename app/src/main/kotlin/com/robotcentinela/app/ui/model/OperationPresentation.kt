@@ -186,8 +186,11 @@ object OperationPresentation {
         is StationOutcome.Omitted -> StatusLabel("Omitida", StatusTone.Warning, StatusIcon.Warming) to outcome.cause
     }
 
-    /** "3 de 5" estaciones visitadas. */
-    fun stationProgress(mission: MissionSummary): String = "${mission.visitedStations} de ${mission.plannedStations}"
+    /** "3 de 5" estaciones visitadas, o "Pendiente" si el backend todavía no reporta estaciones. */
+    fun stationProgress(mission: MissionSummary): String {
+        val planned = mission.plannedStations ?: return "Pendiente"
+        return "${mission.visitedStations} de $planned"
+    }
 
     fun missionDuration(mission: MissionSummary, now: Instant): String {
         val end = mission.endedAt ?: now

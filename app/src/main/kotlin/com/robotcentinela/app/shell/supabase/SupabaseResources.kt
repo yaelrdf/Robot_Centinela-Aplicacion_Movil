@@ -3,10 +3,9 @@ package com.robotcentinela.app.shell.supabase
 /**
  * ÚNICO lugar con los nombres de recursos de Supabase que consume la app.
  *
- * PROVISIONAL: el equipo de backend todavía no publica el esquema definitivo. Los nombres de tablas y
- * columnas vienen de la propuesta de modelo del expediente técnico (§13.2). El recurso de frames sigue
- * la estructura de `JSON_estructura.txt`. Cuando backend publique el contrato, basta con actualizar
- * este archivo y los DTO de cada adaptador (ver docs/pendientes.md).
+ * Los nombres siguen el esquema SQL que compartió el equipo (octubre de 2026, documentado en
+ * docs/data_dictionary/frame-telemetria-v1.md). Si backend cambia un nombre, basta con actualizar este
+ * archivo y el DTO del adaptador correspondiente.
  */
 object SupabaseResources {
 
@@ -14,15 +13,9 @@ object SupabaseResources {
     const val SCHEMA = "public"
 
     /**
-     * PROVISIONAL. Vista, tabla o RPC que devuelve cada frame con la estructura de
-     * `JSON_estructura.txt` más `robot_id`, `received_at` y `stream_version`.
-     */
-    const val TELEMETRY_FRAMES_VIEW = "telemetry_frames_v1"
-
-    /**
-     * Tabla que se observa con Realtime. Su nombre viene del expediente (§7.4: "Un cambio sobre
-     * telemetry_frames se consulta con sus hijos después del commit"). Postgres Changes funciona sobre
-     * tablas, no sobre vistas.
+     * Cabecera de cada frame. Se consulta con sus tablas hijas embebidas
+     * (`NormalizedFrameAssembler.SELECT`) y también se observa con Realtime: Postgres Changes funciona
+     * sobre tablas y avisa al confirmarse la inserción (§7.4).
      */
     const val TELEMETRY_FRAMES_TABLE = "telemetry_frames"
 
@@ -38,8 +31,15 @@ object SupabaseResources {
     /** Alertas o incidentes (§13.2). La lógica que las genera vive en la base de datos. */
     const val ALERTS = "alerts"
 
+    /** Catálogo de canales por robot: semántica y unidad de cada `channel_key` (RF05). */
+    const val CHANNELS = "channels"
+
+    /** Misiones (RF14). */
+    const val MISSIONS = "missions"
+
     /** Columnas usadas en filtros y orden. */
     object Columns {
+        const val ID = "id"
         const val ROBOT_ID = "robot_id"
         const val HOME_ID = "home_id"
         const val USER_ID = "user_id"
@@ -47,6 +47,7 @@ object SupabaseResources {
         const val CAPTURED_AT = "captured_at"
         const val MISSION_ID = "mission_id"
         const val OPENED_AT = "opened_at"
+        const val STARTED_AT = "started_at"
         const val TYPE = "type"
         const val SEVERITY = "severity"
         const val STATE = "state"

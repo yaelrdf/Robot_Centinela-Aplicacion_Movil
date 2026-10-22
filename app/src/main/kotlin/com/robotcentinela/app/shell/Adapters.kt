@@ -1,5 +1,6 @@
 package com.robotcentinela.app.shell
 
+import com.robotcentinela.app.environmentalmonitoring.adapters.supabase.SupabaseCapabilitiesAdapter
 import com.robotcentinela.app.environmentalmonitoring.ports.CapabilitiesPort
 import com.robotcentinela.app.environmentalmonitoring.ports.MetricAggregatePort
 import com.robotcentinela.app.homemapping.ports.FloorPlanPort
@@ -9,6 +10,7 @@ import com.robotcentinela.app.identity.ports.AuthPort
 import com.robotcentinela.app.identity.ports.HomeScopePort
 import com.robotcentinela.app.incidents.adapters.supabase.SupabaseAlertQueryAdapter
 import com.robotcentinela.app.incidents.ports.AlertQueryPort
+import com.robotcentinela.app.missions.adapters.supabase.SupabaseMissionQueryAdapter
 import com.robotcentinela.app.missions.ports.MissionQueryPort
 import com.robotcentinela.app.shell.supabase.SupabaseClientFactory
 import com.robotcentinela.app.shell.supabase.SupabaseConfig
@@ -37,7 +39,10 @@ class Adapters(
 ) {
     companion object {
 
-        /** Adaptadores de Supabase. Capacidades, agregados, planos y misiones esperan su contrato (B8, B9). */
+        /**
+         * Adaptadores de Supabase según el esquema del equipo. Agregados (cálculo en servidor) y planos
+         * (archivo del mapa en Storage) todavía no tienen contrato (B8).
+         */
         fun supabase(config: SupabaseConfig, scope: CoroutineScope): Adapters {
             val client = SupabaseClientFactory.create(config)
             return Adapters(
@@ -46,6 +51,8 @@ class Adapters(
                 telemetryQuery = SupabaseTelemetryQueryAdapter(client),
                 telemetryNotifier = SupabaseTelemetryChangeNotifier(client),
                 alertQuery = SupabaseAlertQueryAdapter(client),
+                capabilities = SupabaseCapabilitiesAdapter(client),
+                missions = SupabaseMissionQueryAdapter(client),
             )
         }
     }

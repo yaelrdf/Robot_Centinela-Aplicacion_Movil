@@ -81,7 +81,7 @@ sequenceDiagram
 
 ## Limitaciones conocidas
 
-- El snapshot de esta versión es el frame más reciente de `telemetry_frames_v1`. Un snapshot
+- El snapshot de esta versión es el frame más reciente de `telemetry_frames` (con sus tablas hijas). Un snapshot
   compuesto, con varios recursos y watermark en una sola transacción, requiere una RPC del backend
   (docs/pendientes.md).
 - La detección de huecos depende de que `stream_version` sea contiguo por robot, como propone el
