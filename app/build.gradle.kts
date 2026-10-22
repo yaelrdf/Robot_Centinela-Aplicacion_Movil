@@ -26,9 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.robotcentinela.app"
-        // minSdk 26: permite java.time (UTC, zonas horarias) sin desugaring. Provisional hasta
-        // que Ingeniería de Software defina los dispositivos objetivo.
-        minSdk = 26
+        // minSdk 29: Android 10 (Q) como versión mínima requerida por el proyecto.
+        minSdk = 29
         targetSdk = 36
         versionCode = 1
         versionName = "0.2.0"
