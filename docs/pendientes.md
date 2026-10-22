@@ -24,6 +24,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 | B15 | `battery.quality` del JSON (`voltage_only`): ¿va en `method_code` o en `quality` de `battery_readings`? | Se muestra `method_code` como método | `NormalizedFrameAssembler.kt` |
 | B16 | `missions` no tiene nombre, propósito, estaciones ni energía (mockups y HU06, HU08) | Se muestran como "pendiente", nunca como cero | `SupabaseMissionQueryAdapter.kt` |
 | B17 | `firmware_version` está en `devices`, no por frame | Se muestra el firmware actual del dispositivo | `NormalizedFrameAssembler.kt` |
+| B18 | La vista `telemetry_frames_v1` del equipo se salta el RLS (falta `security_invoker = true`) y no trae `schema_version`, `device_id` ni `boot_id` | Corrección probada en `docs/backend/propuesta-vista-telemetry-frames-v1.sql`. La app no usa la vista: lee las tablas | `SupabaseTelemetryQueryAdapter.kt` |
 
 ## Para Ingeniería de Software / Requerimientos
 

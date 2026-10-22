@@ -4,6 +4,7 @@
 |---|---|---|
 | `esquema-supabase-equipo.sql` | Copia de referencia del esquema que compartió el equipo (21 de octubre de 2026), sin cambios | Backend |
 | `propuesta-politicas-lectura.sql` | **Propuesta**: políticas RLS de solo lectura por membresía activa, índices y Realtime | Backend (revisar y aplicar) |
+| `propuesta-vista-telemetry-frames-v1.sql` | **Propuesta**: corrección de la vista `telemetry_frames_v1` que compartió el equipo (seguridad y campos faltantes) | Backend (revisar y aplicar) |
 | `datos-de-prueba.sql` | Un domicilio, un robot, una misión, el catálogo de canales, 30 frames y 2 alertas para probar la app | Quien prueba, en un proyecto de pruebas |
 
 ## Por qué hacen falta las políticas
@@ -12,6 +13,27 @@ El esquema habilita RLS en las 14 tablas, pero no crea políticas. Con RLS activ
 Supabase no entrega ninguna fila a web ni a móvil: la app se conecta pero todo sale vacío. La
 propuesta da acceso de **lectura** solo a usuarios autenticados con membresía `active` en el domicilio.
 Nadie del lado cliente puede escribir: la ingesta escribe con su propia credencial de servidor.
+
+## La vista `telemetry_frames_v1`
+
+El equipo compartió una vista que arma cada frame con la forma de `JSON_estructura.txt`. Se probó con
+el esquema y los datos de prueba, y tiene dos problemas:
+
+1. **Se salta el RLS.** Una vista de PostgreSQL se ejecuta con los permisos de su dueño, salvo que se
+   cree con `security_invoker = true`. Con la vista original, un usuario sin membresía **y el rol anon
+   (sin sesión)** ven las 30 filas de prueba: cualquiera con la clave pública leería la telemetría de
+   todos los domicilios.
+2. **Le faltan campos obligatorios del contrato:** `schema_version`, `device_id` y `boot_id`. La app
+   rechaza todas sus filas ("el frame no cumple la estructura del contrato v1").
+
+`propuesta-vista-telemetry-frames-v1.sql` corrige ambos y además expone `firmware_version`,
+`current_a` y el método de batería (`method_code`). Probada: el usuario con membresía ve sus 30 filas,
+el usuario sin membresía 0, el rol anon recibe "permiso denegado", y la app acepta las filas (10
+lecturas, pose, batería y sesión de arranque).
+
+La app **no depende** de la vista: hoy lee `telemetry_frames` y sus tablas hijas directamente (con el
+RLS de cada tabla). Si el equipo prefiere que web y móvil lean la misma vista corregida, cambiar la app
+es un cambio pequeño en `SupabaseTelemetryQueryAdapter` (leer la vista en lugar de las tablas).
 
 ## Cómo probar la app con datos
 
