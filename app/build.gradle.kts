@@ -18,6 +18,9 @@ val localProperties = Properties().apply {
 
 fun localProperty(name: String): String = localProperties.getProperty(name, "")
 
+/** Literal de Java para buildConfigField, con comillas y barras escapadas. */
+fun javaString(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
 android {
     namespace = "com.robotcentinela.app"
     // Compose 1.12, Lifecycle 2.11 y Navigation 2.10 se publican compilados con API 37, así que la app
@@ -38,6 +41,19 @@ android {
             "SUPABASE_PUBLISHABLE_KEY",
             "\"${localProperty("supabase.publishableKey")}\"",
         )
+    }
+
+    // Cuenta de PRUEBA para leer datos con RLS mientras no exista la pantalla de inicio de sesión (que
+    // el equipo dejó para el final). Solo existe en debug: un build release nunca la lleva.
+    buildTypes {
+        debug {
+            buildConfigField("String", "DEV_EMAIL", javaString(localProperty("centinela.devEmail")))
+            buildConfigField("String", "DEV_PASSWORD", javaString(localProperty("centinela.devPassword")))
+        }
+        release {
+            buildConfigField("String", "DEV_EMAIL", "\"\"")
+            buildConfigField("String", "DEV_PASSWORD", "\"\"")
+        }
     }
 
     buildFeatures {

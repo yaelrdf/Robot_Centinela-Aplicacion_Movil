@@ -75,6 +75,13 @@ class ProvisionalContractsTest {
     }
 
     @Test
+    fun `sin estaciones reportadas el resumen no inventa cero`() {
+        val summary = mission(TestFrames.ROBOT_ID).copy(stations = null)
+        assertEquals(null, summary.plannedStations)
+        assertEquals(null, summary.visitedStations)
+    }
+
+    @Test
     fun `no lista misiones de robots ajenos al domicilio`() = runTest {
         SelectHomeScope(scopePort, currentScope)(TestFrames.HOME_ID)
         val port = object : MissionQueryPort {

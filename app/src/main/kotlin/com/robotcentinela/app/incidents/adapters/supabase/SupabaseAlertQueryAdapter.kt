@@ -52,11 +52,14 @@ class SupabaseAlertQueryAdapter(private val supabase: SupabaseClient) : AlertQue
 
     private companion object {
         const val ALERT_COLUMNS =
-            "id, robot_id, rule_id, type, severity, state, origin, opened_at, last_seen_at, resolved_at"
+            "id, robot_id, type, severity, state, origin, opened_at, last_seen_at, resolved_at"
     }
 }
 
-/** Fila de `alerts`. PROVISIONAL: campos según §13.2. */
+/**
+ * Fila de `alerts` según el esquema de Supabase del equipo. El esquema no tiene `rule_id`; el campo se
+ * conserva opcional por si backend lo agrega (§13.2).
+ */
 @Serializable
 internal data class AlertRowDto(
     val id: String,

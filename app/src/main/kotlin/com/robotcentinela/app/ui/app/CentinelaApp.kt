@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,12 +21,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.robotcentinela.app.R
 import com.robotcentinela.app.shell.AppContainer
 import com.robotcentinela.app.ui.components.AppIcon
+import com.robotcentinela.app.ui.components.ErrorState
 import com.robotcentinela.app.ui.homes.HomeSelectionScreen
 import com.robotcentinela.app.ui.main.MainScreen
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 
-/** Raíz de la interfaz: tema, dependencias y la pantalla que corresponde a la sesión. */
+/** Raíz de la interfaz: tema, dependencias y la pantalla que corresponde a la sesión y al domicilio. */
 @Composable
 fun CentinelaApp(containerResult: Result<AppContainer>, preferences: UiPreferences) {
     val theme by preferences.theme.collectAsStateWithLifecycle()
@@ -46,9 +48,38 @@ private fun AppContent(container: AppContainer, preferences: UiPreferences) {
         val root: RootViewModel = viewModel { RootViewModel(container) }
         val state by root.state.collectAsStateWithLifecycle()
         when (val s = state) {
+            RootState.Connecting -> Connecting()
+            is RootState.NeedsSession -> SessionProblem(s.message, onRetry = root::retrySession)
             RootState.ChoosingHome -> HomeSelectionScreen(onChosen = root::homeChosen)
             is RootState.Ready -> MainScreen(scope = s.scope, onChangeHome = root::changeHome)
         }
+    }
+}
+
+/** Recuperando la sesión o entrando con la cuenta de prueba. */
+@Composable
+private fun Connecting() {
+    val colors = CentinelaTheme.colors
+    Column(
+        Modifier.fillMaxSize().background(colors.background).safeDrawingPadding().padding(Spacing.xl),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CircularProgressIndicator(color = colors.primary)
+        Text("Conectando con el servidor…", style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
+    }
+}
+
+/** Sin sesión: explica la causa y permite reintentar. */
+@Composable
+private fun SessionProblem(message: String, onRetry: () -> Unit) {
+    val colors = CentinelaTheme.colors
+    Column(
+        Modifier.fillMaxSize().background(colors.background).safeDrawingPadding().padding(Spacing.l),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("Sin sesión", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary, modifier = Modifier.padding(horizontal = Spacing.l))
+        ErrorState(message = message, onRetry = onRetry)
     }
 }
 

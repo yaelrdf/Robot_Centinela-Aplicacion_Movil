@@ -52,11 +52,12 @@ pose, batería y estado.
 | Puerto (`:core`) | Adaptador (`:app`) | Recurso Supabase | Estado |
 |---|---|---|---|
 | `AuthPort` | `SupabaseAuthAdapter` | Supabase Auth (correo y contraseña) | Implementado |
-| `HomeScopePort` | `SupabaseHomeScopeAdapter` | `memberships`, `homes`, `robots` | Implementado, nombres provisionales |
-| `TelemetryQueryPort` | `SupabaseTelemetryQueryAdapter` | `telemetry_frames_v1` | Implementado, nombre provisional |
+| `HomeScopePort` | `SupabaseHomeScopeAdapter` | `memberships`, `homes`, `robots` | Implementado con el esquema del equipo |
+| `TelemetryQueryPort` | `SupabaseTelemetryQueryAdapter` | `telemetry_frames` + `sensor_readings`, `frame_poses`, `robot_states`, `battery_readings`, `device_sessions`, `devices` | Implementado con el esquema del equipo |
 | `TelemetryChangeNotifier` | `SupabaseTelemetryChangeNotifier` | Realtime sobre `telemetry_frames` | Implementado |
-| `AlertQueryPort` | `SupabaseAlertQueryAdapter` | `alerts` | Implementado, nombres provisionales |
-| `CapabilitiesPort` | — | `GET /v1/robots/{id}/capabilities` (§7.3) | Pendiente de contrato |
+| `AlertQueryPort` | `SupabaseAlertQueryAdapter` | `alerts` | Implementado con el esquema del equipo |
+| `CapabilitiesPort` | `SupabaseCapabilitiesAdapter` | `channels` | Implementado (sin gas objetivo ni periodo) |
+| `MissionQueryPort` | `SupabaseMissionQueryAdapter` | `missions` | Implementado (sin estaciones ni energía) |
 | `MetricAggregatePort` | — | `metric_aggregates` (§13.2) | Pendiente de contrato |
 
 Todos los nombres de recursos están en un solo archivo:

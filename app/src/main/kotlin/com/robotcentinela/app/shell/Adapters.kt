@@ -1,5 +1,6 @@
 package com.robotcentinela.app.shell
 
+import com.robotcentinela.app.environmentalmonitoring.adapters.supabase.SupabaseCapabilitiesAdapter
 import com.robotcentinela.app.environmentalmonitoring.ports.CapabilitiesPort
 import com.robotcentinela.app.environmentalmonitoring.ports.MetricAggregatePort
 import com.robotcentinela.app.homemapping.ports.FloorPlanPort
@@ -9,6 +10,7 @@ import com.robotcentinela.app.identity.ports.AuthPort
 import com.robotcentinela.app.identity.ports.HomeScopePort
 import com.robotcentinela.app.incidents.adapters.supabase.SupabaseAlertQueryAdapter
 import com.robotcentinela.app.incidents.ports.AlertQueryPort
+import com.robotcentinela.app.missions.adapters.supabase.SupabaseMissionQueryAdapter
 import com.robotcentinela.app.missions.ports.MissionQueryPort
 import com.robotcentinela.app.shell.supabase.SupabaseClientFactory
 import com.robotcentinela.app.shell.supabase.SupabaseConfig
@@ -31,9 +33,10 @@ class Adapters(
     val telemetryQuery: TelemetryQueryPort,
     val telemetryNotifier: TelemetryChangeNotifier,
     val alertQuery: AlertQueryPort,
-    // [PENDIENTE DE CONTRATO REAL]: Capacidades, agregados métricos, planos cartográficos y misiones
-    // aún no cuentan con endpoints o tablas publicadas en el backend/robot. Se mantienen como null
-    // para indicar explícitamente a la UI el estado "pendiente de backend" sin usar datos inventados.
+    // Capacidades (tabla `channels`) y misiones (tabla `missions`) ya tienen adaptador.
+    // [PENDIENTE DE CONTRATO REAL]: agregados métricos y planos cartográficos aún no cuentan con
+    // tablas publicadas en el backend. Se mantienen como null para indicar explícitamente a la UI el
+    // estado "pendiente de backend" sin usar datos inventados.
     val capabilities: CapabilitiesPort? = null,
     val aggregates: MetricAggregatePort? = null,
     val floorPlans: FloorPlanPort? = null,
@@ -41,7 +44,10 @@ class Adapters(
 ) {
     companion object {
 
-        /** Adaptadores de Supabase conectados al backend real. Capacidades, agregados, planos y misiones esperan definición de contrato. */
+        /**
+         * Adaptadores de Supabase conectados al backend real, según el esquema del equipo. Agregados
+         * (cálculo en servidor) y planos (archivo del mapa en Storage) todavía esperan contrato (B8).
+         */
         fun supabase(config: SupabaseConfig, scope: CoroutineScope): Adapters {
             val client = SupabaseClientFactory.create(config)
             return Adapters(
@@ -50,6 +56,8 @@ class Adapters(
                 telemetryQuery = SupabaseTelemetryQueryAdapter(client),
                 telemetryNotifier = SupabaseTelemetryChangeNotifier(client),
                 alertQuery = SupabaseAlertQueryAdapter(client),
+                capabilities = SupabaseCapabilitiesAdapter(client),
+                missions = SupabaseMissionQueryAdapter(client),
             )
         }
     }

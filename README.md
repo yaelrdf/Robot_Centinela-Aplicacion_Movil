@@ -93,7 +93,7 @@ docs/                       arquitectura, diccionario de datos, trazabilidad, de
 ## Requisitos
 
 - JDK 21.
-- Android SDK con la plataforma 37 (`compileSdk` 37, `targetSdk` 36, `minSdk` 26). Compose 1.12,
+- Android SDK con la plataforma 37 (`compileSdk` 37, `targetSdk` 36, `minSdk` 29). Compose 1.12,
   Lifecycle 2.11 y Navigation 2.10 se publican compilados con API 37.
 - Gradle 9.6.0, incluido mediante el wrapper (`./gradlew`).
 

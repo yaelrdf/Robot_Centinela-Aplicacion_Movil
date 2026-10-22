@@ -106,6 +106,7 @@ private fun Operation(live: LiveUiState) {
         battery = live.battery,
         stations = live.mission?.let(OperationPresentation::stationProgress),
         lastUpdate = live.lastUpdate,
+        missionsSupported = live.missionsSupported,
     )
 }
 

@@ -82,6 +82,9 @@ data class MissionEnergy(
  * @property name nombre visible de la misión (mockup: "Patrullaje 03 - Regular"); `null` si no tiene.
  * @property purpose propósito declarado al crearla (mockup "Nueva misión"); `null` si no tiene.
  * @property mapVersionId versión exacta de mapa usada; la trayectoria se dibuja sobre ella (HU05).
+ * @property stopReason motivo de paro registrado (`missions.stop_reason`); `null` si no hay.
+ * @property stations estaciones previstas con su resultado; `null` cuando el backend todavía no las
+ * reporta. `null` no es "cero estaciones": la interfaz lo muestra como pendiente.
  */
 data class MissionSummary(
     val id: MissionId,
@@ -92,10 +95,11 @@ data class MissionSummary(
     val startedAt: Instant,
     val endedAt: Instant?,
     val status: MissionStatus,
-    val stations: List<StationVisit>,
+    val stopReason: String? = null,
+    val stations: List<StationVisit>?,
     val energy: MissionEnergy?,
 ) {
-    val plannedStations: Int get() = stations.size
-    val visitedStations: Int get() = stations.count { it.outcome is StationOutcome.Visited }
-    val omittedStations: Int get() = stations.count { it.outcome is StationOutcome.Omitted }
+    val plannedStations: Int? get() = stations?.size
+    val visitedStations: Int? get() = stations?.count { it.outcome is StationOutcome.Visited }
+    val omittedStations: Int? get() = stations?.count { it.outcome is StationOutcome.Omitted }
 }

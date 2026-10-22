@@ -244,7 +244,7 @@ private fun MissionCard(mission: MissionSummary, selected: Boolean, zone: ZoneId
             Text(mission.name ?: "Misión sin nombre", style = MaterialTheme.typography.titleSmall, maxLines = 2)
             IconLine(R.drawable.ic_calendar_month, Formats.dateTime(mission.startedAt, zone))
             IconLine(R.drawable.ic_timelapse, "Duración: ${OperationPresentation.missionDuration(mission, Instant.now())}")
-            IconLine(R.drawable.ic_conversion_path, "Estaciones: ${mission.plannedStations}")
+            IconLine(R.drawable.ic_conversion_path, "Estaciones: ${mission.plannedStations ?: "pendiente"}")
         }
     }
 }
