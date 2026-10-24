@@ -38,6 +38,24 @@ class PresentationTest {
     }
 
     @Test
+    fun `las unidades del catálogo del equipo se muestran legibles`() {
+        assertEquals("ADC", ChannelPresentation.unitLabel("adc"))
+        assertEquals("m", ChannelPresentation.unitLabel("meter"))
+        assertNull(ChannelPresentation.unitLabel("bool"))
+        val card = ChannelPresentation.card(status(ReadingInterpretation.RawSignal(ReadingValue.Numeric(1860.0), "adc"), mq6Catalog.copy(unitCode = "adc")), zone)
+        assertEquals("1860", card.value)
+        assertEquals("ADC", card.unit)
+    }
+
+    @Test
+    fun `el IR lateral se traduce a libre u obstaculo`() {
+        val key = ChannelKey("ir_lateral_left")
+        assertEquals("Obstáculo lateral izquierdo", ChannelPresentation.title(key, null))
+        assertEquals("Libre", ChannelPresentation.formatValue(ReadingValue.BooleanValue(true), "bool", key, null))
+        assertEquals("Obstáculo", ChannelPresentation.formatValue(ReadingValue.BooleanValue(false), "bool", key, null))
+    }
+
+    @Test
     fun `sin catálogo no se atribuye un gas al sensor`() {
         val card = ChannelPresentation.card(status(ReadingInterpretation.RawSignal(ReadingValue.Numeric(1860.0), null)), zone)
         assertEquals("Sensor MQ6", card.title)

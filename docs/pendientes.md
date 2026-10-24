@@ -25,6 +25,9 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 | B16 | `missions` no tiene nombre, propósito, estaciones ni energía (mockups y HU06, HU08) | Se muestran como "pendiente", nunca como cero | `SupabaseMissionQueryAdapter.kt` |
 | B17 | `firmware_version` está en `devices`, no por frame | Se muestra el firmware actual del dispositivo | `NormalizedFrameAssembler.kt` |
 | B18 | La vista `telemetry_frames_v1` del equipo se salta el RLS (falta `security_invoker = true`) y no trae `schema_version`, `device_id` ni `boot_id` | Corrección probada en `docs/backend/propuesta-vista-telemetry-frames-v1.sql`. La app no usa la vista: lee las tablas | `SupabaseTelemetryQueryAdapter.kt` |
+| B19 | En el proyecto de Supabase (revisado el 23 de octubre de 2026), **sin iniciar sesión** y solo con la clave pública se leen `homes`, `robots`, `devices`, `channels`, `map_versions`, `telemetry_frames`, `sensor_readings`, `frame_poses`, `robot_states` y `battery_readings`. Cualquiera con la app (la clave pública va dentro del APK) puede leer la telemetría | Aplicar `docs/backend/propuesta-politicas-lectura.sql` y quitar las políticas o permisos que dejan leer al rol `anon` | — |
+| B20 | `device_sessions` no se puede leer, así que la app no obtiene `boot_id` y rechaza los frames | Las políticas propuestas incluyen lectura de `device_sessions` por membresía | `NormalizedFrameAssembler.kt` |
+| B21 | Falta un usuario de prueba con membresía activa en "Casa Demo Centinela" (`memberships` está vacía para la app) | Sin él la app se queda en "Sin sesión" | `DevAccount.kt` |
 
 ## Para Ingeniería de Software / Requerimientos
 

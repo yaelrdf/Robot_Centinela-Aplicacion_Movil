@@ -59,6 +59,8 @@ object ChannelPresentation {
         "ir_floor_front_right" to "Piso delantero derecho",
         "ir_floor_rear_left" to "Piso trasero izquierdo",
         "ir_floor_rear_right" to "Piso trasero derecho",
+        "ir_lateral_left" to "Obstáculo lateral izquierdo",
+        "ir_lateral_right" to "Obstáculo lateral derecho",
     )
 
     private val gasNames = mapOf(
@@ -70,22 +72,26 @@ object ChannelPresentation {
 
     private val unitLabels = mapOf(
         "adc_count" to "ADC",
+        "adc" to "ADC",
         "celsius" to "°C",
         "degC" to "°C",
         "percent" to "%",
         "pct" to "%",
         "m" to "m",
+        "meter" to "m",
         "ppm" to "ppm",
         "V" to "V",
     )
 
     private val unitDecimals = mapOf(
         "adc_count" to 0,
+        "adc" to 0,
         "celsius" to 1,
         "degC" to 1,
         "percent" to 1,
         "pct" to 1,
         "m" to 2,
+        "meter" to 2,
         "ppm" to 0,
     )
 
@@ -111,21 +117,24 @@ object ChannelPresentation {
     }
 
     fun unitLabel(unitCode: String?): String? = when (unitCode) {
-        null, "boolean" -> null
+        null, "boolean", "bool" -> null
         else -> unitLabels[unitCode] ?: unitCode
     }
 
     private fun isFloorSensor(key: ChannelKey, capability: ChannelCapability?) =
         capability?.metricType == "floor_presence" || key.value.startsWith("ir_floor_")
 
+    /** IR lateral (FC51): `true` = libre, `false` = obstáculo (docs/data-model.md del repositorio principal). */
+    private fun isLateralSensor(key: ChannelKey) = key.value.startsWith("ir_lateral_")
+
     /** Texto de un valor en su unidad. Un booleano de piso se traduce a su significado (§7.2). */
     fun formatValue(value: ReadingValue, unitCode: String?, key: ChannelKey, capability: ChannelCapability?): String? =
         when (value) {
             is ReadingValue.Numeric -> Formats.number(value.value, unitDecimals[unitCode] ?: 2)
-            is ReadingValue.BooleanValue -> if (isFloorSensor(key, capability)) {
-                if (value.value) "Piso detectado" else "Riesgo de borde"
-            } else {
-                if (value.value) "Sí" else "No"
+            is ReadingValue.BooleanValue -> when {
+                isFloorSensor(key, capability) -> if (value.value) "Piso detectado" else "Riesgo de borde"
+                isLateralSensor(key) -> if (value.value) "Libre" else "Obstáculo"
+                else -> if (value.value) "Sí" else "No"
             }
             ReadingValue.Absent -> null
         }

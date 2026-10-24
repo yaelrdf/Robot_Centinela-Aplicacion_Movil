@@ -327,7 +327,7 @@ class HistoryViewModel(
 
     private companion object {
         val DEFAULT_CHANNELS = listOf("mq6_raw", "mq4_raw", "temperature", "humidity").map(::ChannelKey)
-        val DECIMALS = mapOf("adc_count" to 0, "celsius" to 1, "percent" to 1, "m" to 2, "ppm" to 0)
+        val DECIMALS = mapOf("adc_count" to 0, "adc" to 0, "celsius" to 1, "percent" to 1, "m" to 2, "meter" to 2, "ppm" to 0)
         const val ALERT_LIMIT = 500
         const val RAW_LIMIT = 500
         const val GAP_MS = 6_000L
