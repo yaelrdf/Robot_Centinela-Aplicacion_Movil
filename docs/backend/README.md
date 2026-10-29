@@ -67,3 +67,29 @@ Supabase. Resultados:
 El frame que devolvió esa prueba se guardó como fixture
 (`app/src/test/resources/fixtures/telemetry/frame_supabase_embebido.json`) y las pruebas de
 `NormalizedFrameAssemblerTest` verifican que la app lo interpreta igual que `JSON_estructura.txt`.
+
+## Estado del proyecto de Supabase (revisado el 29 de octubre de 2026)
+
+Revisión de **solo lectura**, con la clave pública y **sin iniciar sesión** (rol `anon`). No se escribió
+nada. El proyecto es el de pruebas del equipo; la URL y la clave no se versionan.
+
+| Recurso | Con la clave pública, sin sesión |
+|---|---|
+| `homes`, `robots`, `devices`, `map_versions` | 1 fila cada una, legibles |
+| `channels` | 12 filas, legibles (`front_distance_m`, `humidity`, `ir_floor_*`, `ir_lateral_*`, `mq4_raw`, `mq6_raw`, `mq7_raw`, `temperature`) |
+| `telemetry_frames` | 2 filas (`stream_version` 1 y 2), legibles. El último, del 23 de octubre de 2026 |
+| `sensor_readings` | 24 filas, legibles |
+| `frame_poses`, `robot_states`, `battery_readings` | 2 filas cada una, legibles |
+| `memberships`, `device_sessions`, `missions`, `alerts` | 0 filas (RLS o tablas vacías: no se distingue sin sesión) |
+| `alert_occurrences`, vista `telemetry_frames_v1` | No existen (404) |
+| Auth | Registro con correo abierto; confirmación por correo activa |
+
+Conclusiones:
+
+- **B19 sigue abierto:** la telemetría es legible con la clave pública que va dentro de cualquier APK.
+- `telemetry_frames` del proyecto real tiene las columnas `schema_version` y `raw_payload` (el frame
+  original), que el esquema compartido del 21 de octubre no traía.
+- Sin `device_sessions` visible no se obtiene `boot_id`; la demo lo toma de `raw_payload`
+  ([ADR-006](../decisions/ADR-006-demo-lectura-publica.md)).
+- Pendiente de comprobar con un usuario real: que la membresía y las políticas de lectura (B12, B20,
+  B21) funcionan. Hoy no existe ese usuario.

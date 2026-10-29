@@ -82,3 +82,12 @@ Pruebas de la interfaz: `PresentationTest` (reglas de presentación) y `Provisio
 | RNF16: mantenibilidad | Hexagonal por dominio, una prueba por regla |
 | RNF18: portabilidad | Supabase aislado en adaptadores de `:app` |
 | RNF19: privacidad | Las causas de rechazo y los errores no incluyen payloads |
+
+## Integración con Supabase y demostración beta (29 de octubre de 2026)
+
+| Aspecto | Estado |
+|---|---|
+| Lectura de telemetría, canales, alertas y misiones con el esquema del equipo | ✅ Adaptadores implementados y probados (`NormalizedFrameAssemblerTest`) |
+| Contra el proyecto real con la clave pública | 🟡 Verificada la lectura de `homes`, `robots`, `channels` y `telemetry_frames`. Alertas y misiones llegan vacías |
+| Contra el proyecto real con un usuario con membresía (HU01, RF02) | ⏳ No verificada: no existe el usuario de pruebas (B21) |
+| Demostración sin inicio de sesión (build `demo`) | ✅ Implementada, **temporal** y atada a B19 ([ADR-006](../decisions/ADR-006-demo-lectura-publica.md)). Pruebas: `PublicReadAuthAdapterTest`, `NormalizedFrameAssemblerTest` |

@@ -83,3 +83,18 @@ Los mensajes nunca incluyen payloads ni cuerpos de respuesta (RNF19).
   solo evitan consultas fuera de ámbito; ocultar botones no protege nada (RNF09).
 - La app solo acepta la clave pública de Supabase y una URL HTTPS (`SupabaseConfig`, RNF08).
 - La app no escribe telemetría, configuración ni alertas (RB25).
+
+## Modo de lectura pública (build `demo`)
+
+La demostración beta no agrega capas: cambia el cableado de `shell/Adapters.kt`. Con
+`BuildConfig.DEMO_PUBLIC_READ` activo, `Adapters.supabase(..., publicRead = true)` sustituye dos
+adaptadores y deja el resto igual:
+
+| Puerto | Flujo normal | Build `demo` |
+|---|---|---|
+| `AuthPort` | `SupabaseAuthAdapter` (Supabase Auth) | `PublicReadAuthAdapter` (sesión fija, sin permisos) |
+| `HomeScopePort` | `SupabaseHomeScopeAdapter` (`memberships`) | `PublicReadHomeScopeAdapter` (`homes` visibles para `anon`; robots igual que el flujo normal) |
+| `TelemetryQueryPort` | `SupabaseTelemetryQueryAdapter` | Mismo adaptador, con `schema_version` y `raw_payload` en la consulta |
+
+`:core` no cambia y no sabe que existe este modo. Es una decisión temporal
+([ADR-006](../decisions/ADR-006-demo-lectura-publica.md)) que se retira cuando exista el inicio de sesión.

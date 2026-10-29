@@ -10,10 +10,12 @@ persistió. **No controla el robot**: el inicio, la pausa y la parada son locale
 autoridad de seguridad (expediente §1, §7.1). Tampoco calcula alertas: **la lógica de alertas, los
 umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 
-> **Estado:** borrador. La interfaz es una **propuesta** sobre la guía de diseño de Ingeniería de
-> Software. Varios contratos de datos son **provisionales** hasta que backend publique el esquema de
-> Supabase (ver [docs/pendientes.md](docs/pendientes.md)). La app se conecta solo al backend real
-> (Supabase); el inicio de sesión se integra al final, por indicación del equipo.
+> **Estado:** beta de demostración (0.3.0-beta). La interfaz es una **propuesta** sobre la guía de
+> diseño de Ingeniería de Software. Varios contratos de datos son **provisionales** hasta que backend
+> publique el esquema final de Supabase (ver [docs/pendientes.md](docs/pendientes.md)). La app se conecta
+> solo al backend real (Supabase); el inicio de sesión se integra al final, por indicación del equipo.
+> Mientras tanto existe un build **`demo`** que lee con la clave pública, sin sesión
+> ([ADR-006](docs/decisions/ADR-006-demo-lectura-publica.md)).
 
 ## Alcance de esta versión
 
@@ -107,6 +109,7 @@ Las credenciales se leen de `local.properties`, que **no se versiona**. Copia
 | `sdk.dir` | Ruta al Android SDK. |
 | `supabase.url` | URL **HTTPS** del proyecto Supabase. |
 | `supabase.publishableKey` | Clave **pública** del cliente (anon o publishable). |
+| `centinela.devEmail`, `centinela.devPassword` | Opcionales. Cuenta de prueba para builds `debug` (no se usan en `demo` ni `release`). |
 
 La app **rechaza** claves privilegiadas (`service_role` o `sb_secret_...`): nunca deben llegar al
 teléfono (expediente §7.3, RNF08). Sin configuración, la app compila y arranca, y el error aparece
@@ -117,8 +120,27 @@ con un mensaje claro al usar el backend por primera vez.
 ```bash
 ./gradlew :core:test               # pruebas del dominio y casos de uso (JVM)
 ./gradlew :app:testDebugUnitTest   # pruebas de adaptadores: contrato JSON y configuración
-./gradlew assembleDebug            # APK de depuración
+./gradlew assembleDebug            # APK de depuración (entra con la cuenta de prueba de local.properties)
+./gradlew :app:assembleDemo        # APK de demostración (lectura pública, sin inicio de sesión)
 ```
+
+## Demostración beta (build `demo`)
+
+El build `demo` sirve para mostrar la app con datos reales **sin pantalla de inicio de sesión**:
+
+- Lee de Supabase solo con la clave pública (`supabase.url` y `supabase.publishableKey`), como el rol
+  `anon`. No lleva contraseñas ni cuentas.
+- Se firma con la clave de depuración de Android: se instala en cualquier teléfono (Android 10 o
+  superior), pero no sirve para publicar en una tienda.
+- **Depende de que backend siga permitiendo la lectura anónima (B19).** Si se cierra, el APK deja de
+  mostrar datos. Es una solución temporal; ver
+  [ADR-006](docs/decisions/ADR-006-demo-lectura-publica.md) y
+  [las notas de versión](docs/releases/v0.3.0-beta-demo.md).
+- Con los datos actuales del proyecto (2 frames, del 23 de octubre de 2026) los canales aparecen como
+  "atrasados"; alertas y misiones llegan vacías y el mapa sigue "pendiente de backend".
+
+Para compilarlo: JDK 21, `local.properties` con `sdk.dir`, `supabase.url` y `supabase.publishableKey`, y
+`./gradlew :app:assembleDemo`. El APK queda en `app/build/outputs/apk/demo/`.
 
 ## Documentación
 

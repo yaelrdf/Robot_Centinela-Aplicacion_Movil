@@ -48,3 +48,11 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
 - **Íconos:** una sola familia (Material Symbols Rounded, Apache 2.0) como vectores.
 - **Lectores de pantalla:** cada tarjeta es un solo elemento con descripción completa; mapa, gráfica y
   dona de alertas tienen texto alternativo.
+
+## Entrada a la app en la demostración beta
+
+El build `demo` no tiene pantalla de inicio de sesión ni cuenta de prueba: la sesión es fija
+(`PublicReadAuthAdapter`) y el selector de domicilio muestra lo que el rol `anon` puede leer. Con los datos
+actuales (2 frames, el último del 23 de octubre de 2026) se ven los estados "Atrasado", "Sin alertas" y
+"pendiente de backend" en misiones y mapa. Detalle en
+[ADR-006](../decisions/ADR-006-demo-lectura-publica.md).
