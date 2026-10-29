@@ -85,7 +85,10 @@ class AppContainer(
         /** Ámbito de vida de la aplicación, para estados compartidos como la sesión. */
         private fun applicationScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-        fun supabase(config: SupabaseConfig, clock: Clock = Clock.systemUTC()): AppContainer =
-            AppContainer(Adapters.supabase(config, applicationScope()), clock)
+        fun supabase(
+            config: SupabaseConfig,
+            clock: Clock = Clock.systemUTC(),
+            publicRead: Boolean = false,
+        ): AppContainer = AppContainer(Adapters.supabase(config, applicationScope(), publicRead), clock)
     }
 }

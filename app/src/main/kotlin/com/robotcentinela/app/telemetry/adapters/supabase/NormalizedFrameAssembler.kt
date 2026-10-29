@@ -44,9 +44,22 @@ object NormalizedFrameAssembler {
             "robot_states(reported_state, motors_active), " +
             "battery_readings(voltage_v, current_a, soc_pct, method_code, quality)"
 
+    /**
+     * Columnas adicionales del proyecto real de Supabase (no están en el esquema compartido del 21 de
+     * octubre): `schema_version` y `raw_payload`, el frame original tal como lo publicó el dispositivo.
+     * Solo las pide el modo de lectura pública, donde RLS oculta `device_sessions` y `devices`.
+     */
+    const val SELECT_PUBLIC_READ = "$SELECT, schema_version, raw_payload"
+
     /** Convierte una fila embebida de PostgREST en una fila con la forma del contrato v1. */
     fun toContractRow(row: JsonObject): JsonObject = buildJsonObject {
-        put("schema_version", row["schema_version"].orNull() ?: JsonPrimitive(STORED_SCHEMA_VERSION))
+        // Respaldo cuando RLS oculta las tablas de sesión y dispositivo: el payload original conserva
+        // los mismos identificadores. Con sesión de arranque visible, esta ruta no se usa.
+        val payload = row["raw_payload"] as? JsonObject
+        put(
+            "schema_version",
+            row["schema_version"].orNull() ?: payload?.get("schema_version").orNull() ?: JsonPrimitive(STORED_SCHEMA_VERSION),
+        )
         copy(row, "id", "event_id")
         copy(row, "robot_id")
         copy(row, "mission_id")
@@ -58,12 +71,11 @@ object NormalizedFrameAssembler {
         copy(row, "stream_version")
 
         val session = row.one("device_sessions")
-        session?.let { copy(it, "boot_id") }
         val device = session?.one("devices")
-        device?.let {
-            copy(it, "id", "device_id")
-            copy(it, "firmware_version")
-        }
+        (session?.get("boot_id").orNull() ?: payload?.get("boot_id").orNull())?.let { put("boot_id", it) }
+        (device?.get("id").orNull() ?: payload?.get("device_id").orNull())?.let { put("device_id", it) }
+        (device?.get("firmware_version").orNull() ?: payload?.get("firmware_version").orNull())
+            ?.let { put("firmware_version", it) }
 
         val pose = row.one("frame_poses")
         if (pose != null) {

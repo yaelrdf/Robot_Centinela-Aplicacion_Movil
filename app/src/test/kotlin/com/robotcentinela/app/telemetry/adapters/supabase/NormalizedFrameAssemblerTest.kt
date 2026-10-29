@@ -8,6 +8,7 @@ import com.robotcentinela.app.telemetry.domain.FrameRecord
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import java.time.Instant
 import java.util.UUID
@@ -15,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * El esquema normalizado de Supabase (telemetry_frames + tablas hijas) se reconstruye en el frame v1
@@ -83,5 +85,37 @@ class NormalizedFrameAssemblerTest {
     fun `sin la sesion de arranque el frame se rechaza sin bloquear el flujo`() {
         val row = JsonObject(embedded() - "device_sessions")
         assertIs<FrameRecord.Rejected>(TelemetryFrameMapper.fromRow(NormalizedFrameAssembler.toContractRow(row)))
+    }
+
+    /** Payload original del dispositivo, con los identificadores que RLS oculta en `device_sessions` y `devices`. */
+    private fun payload(bootId: String) = JsonObject(
+        mapOf(
+            "schema_version" to JsonPrimitive("1.1"),
+            "boot_id" to JsonPrimitive(bootId),
+            "device_id" to JsonPrimitive("bf8d0f7d-f739-4529-9a8a-5975f5b26960"),
+            "firmware_version" to JsonPrimitive("0.2.0"),
+        ),
+    )
+
+    @Test
+    fun `sin sesion de arranque visible toma los identificadores del payload original`() {
+        val row = JsonObject(embedded() - "device_sessions" + ("raw_payload" to payload("b503cb0b-3866-491b-aebc-e164ea73d9aa")))
+        val frame = interpret(row)
+        assertEquals(UUID.fromString("b503cb0b-3866-491b-aebc-e164ea73d9aa"), frame.bootId.value)
+        assertEquals(UUID.fromString("bf8d0f7d-f739-4529-9a8a-5975f5b26960"), frame.deviceId.value)
+        assertEquals("0.2.0", frame.firmwareVersion)
+        assertEquals("1.1", frame.schemaVersion)
+    }
+
+    @Test
+    fun `con sesion de arranque visible no se usa el payload original`() {
+        val row = JsonObject(embedded() + ("raw_payload" to payload("11111111-1111-4111-8111-111111111111")))
+        assertEquals(UUID.fromString("b503cb0b-3866-491b-aebc-e164ea73d9aa"), interpret(row).bootId.value)
+    }
+
+    @Test
+    fun `la consulta normal no pide columnas que no estan en el esquema compartido`() {
+        assertTrue("raw_payload" !in NormalizedFrameAssembler.SELECT)
+        assertTrue("raw_payload" in NormalizedFrameAssembler.SELECT_PUBLIC_READ)
     }
 }

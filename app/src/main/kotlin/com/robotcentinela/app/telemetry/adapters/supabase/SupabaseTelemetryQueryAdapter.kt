@@ -29,10 +29,18 @@ import kotlinx.serialization.json.JsonObject
  * transacción de lectura" (§13.6). Una consulta PostgREST de un solo recurso lo cumple para una sola
  * fila. Un snapshot compuesto por varios recursos requerirá una RPC del backend (docs/pendientes.md).
  */
-class SupabaseTelemetryQueryAdapter(private val supabase: SupabaseClient) : TelemetryQueryPort {
+class SupabaseTelemetryQueryAdapter(
+    private val supabase: SupabaseClient,
+    /** `true` en la demo de lectura pública: pide también el payload original (ver [NormalizedFrameAssembler.SELECT_PUBLIC_READ]). */
+    publicRead: Boolean = false,
+) : TelemetryQueryPort {
+
+    private val frameColumns = PostgrestColumns.raw(
+        if (publicRead) NormalizedFrameAssembler.SELECT_PUBLIC_READ else NormalizedFrameAssembler.SELECT,
+    )
 
     override suspend fun snapshot(robotId: RobotId): TelemetrySnapshot = supabaseCall("snapshot de telemetría") {
-        val rows = supabase.from(SupabaseResources.TELEMETRY_FRAMES_TABLE).select(FRAME_COLUMNS) {
+        val rows = supabase.from(SupabaseResources.TELEMETRY_FRAMES_TABLE).select(frameColumns) {
             filter { eq(Columns.ROBOT_ID, robotId.value.toString()) }
             order(Columns.STREAM_VERSION, Order.DESCENDING)
             limit(SNAPSHOT_FRAMES)
@@ -46,7 +54,7 @@ class SupabaseTelemetryQueryAdapter(private val supabase: SupabaseClient) : Tele
         after: StreamVersion,
         limit: Int,
     ): List<FrameRecord> = supabaseCall("deltas de telemetría") {
-        supabase.from(SupabaseResources.TELEMETRY_FRAMES_TABLE).select(FRAME_COLUMNS) {
+        supabase.from(SupabaseResources.TELEMETRY_FRAMES_TABLE).select(frameColumns) {
             filter {
                 eq(Columns.ROBOT_ID, robotId.value.toString())
                 gt(Columns.STREAM_VERSION, after.value)
@@ -62,7 +70,7 @@ class SupabaseTelemetryQueryAdapter(private val supabase: SupabaseClient) : Tele
         missionId: MissionId?,
         page: PageRequest,
     ): List<FrameRecord> = supabaseCall("historial de telemetría") {
-        supabase.from(SupabaseResources.TELEMETRY_FRAMES_TABLE).select(FRAME_COLUMNS) {
+        supabase.from(SupabaseResources.TELEMETRY_FRAMES_TABLE).select(frameColumns) {
             filter {
                 eq(Columns.ROBOT_ID, robotId.value.toString())
                 gte(Columns.CAPTURED_AT, interval.start.toString())
@@ -78,8 +86,6 @@ class SupabaseTelemetryQueryAdapter(private val supabase: SupabaseClient) : Tele
         TelemetryFrameMapper.fromRow(NormalizedFrameAssembler.toContractRow(row))
 
     private companion object {
-        val FRAME_COLUMNS = PostgrestColumns.raw(NormalizedFrameAssembler.SELECT)
-
         /**
          * El snapshot devuelve el frame más reciente. Con la estructura actual cada frame trae todos
          * los canales del robot (`JSON_estructura.txt`).

@@ -32,8 +32,8 @@ android {
         // minSdk 29: Android 10 (Q) como versión mínima requerida por el proyecto.
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.2.0"
+        versionCode = 2
+        versionName = "0.3.0-beta"
 
         buildConfigField("String", "SUPABASE_URL", "\"${localProperty("supabase.url")}\"")
         buildConfigField(
@@ -41,10 +41,12 @@ android {
             "SUPABASE_PUBLISHABLE_KEY",
             "\"${localProperty("supabase.publishableKey")}\"",
         )
+        // Solo el build `demo` lo activa: lectura con la clave pública, sin inicio de sesión.
+        buildConfigField("boolean", "DEMO_PUBLIC_READ", "false")
     }
 
     // Cuenta de PRUEBA para leer datos con RLS mientras no exista la pantalla de inicio de sesión (que
-    // el equipo dejó para el final). Solo existe en debug: un build release nunca la lleva.
+    // el equipo dejó para el final). Solo existe en debug: release y demo nunca la llevan.
     buildTypes {
         debug {
             buildConfigField("String", "DEV_EMAIL", javaString(localProperty("centinela.devEmail")))
@@ -53,6 +55,16 @@ android {
         release {
             buildConfigField("String", "DEV_EMAIL", "\"\"")
             buildConfigField("String", "DEV_PASSWORD", "\"\"")
+        }
+        // Demostración beta (ADR-006): lee de Supabase como el rol `anon`, sin pantalla de login ni cuenta
+        // embebida. Se firma con la clave de depuración de Android: sirve para instalar, no para publicar.
+        create("demo") {
+            initWith(getByName("release"))
+            matchingFallbacks += "release"
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            versionNameSuffix = "-demo"
+            buildConfigField("boolean", "DEMO_PUBLIC_READ", "true")
         }
     }
 

@@ -1,6 +1,7 @@
 package com.robotcentinela.app.shell
 
 import android.app.Application
+import com.robotcentinela.app.BuildConfig
 import com.robotcentinela.app.shell.supabase.SupabaseConfig
 
 /**
@@ -13,6 +14,6 @@ class CentinelaApplication : Application() {
 
     /** Contenedor, o el error de configuración que impide crearlo. */
     val containerResult: Result<AppContainer> by lazy {
-        runCatching { AppContainer.supabase(SupabaseConfig.fromBuildConfig()) }
+        runCatching { AppContainer.supabase(SupabaseConfig.fromBuildConfig(), publicRead = BuildConfig.DEMO_PUBLIC_READ) }
     }
 }

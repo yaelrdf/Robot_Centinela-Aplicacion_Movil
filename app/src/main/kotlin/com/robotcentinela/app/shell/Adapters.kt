@@ -4,6 +4,8 @@ import com.robotcentinela.app.environmentalmonitoring.adapters.supabase.Supabase
 import com.robotcentinela.app.environmentalmonitoring.ports.CapabilitiesPort
 import com.robotcentinela.app.environmentalmonitoring.ports.MetricAggregatePort
 import com.robotcentinela.app.homemapping.ports.FloorPlanPort
+import com.robotcentinela.app.identity.adapters.supabase.PublicReadAuthAdapter
+import com.robotcentinela.app.identity.adapters.supabase.PublicReadHomeScopeAdapter
 import com.robotcentinela.app.identity.adapters.supabase.SupabaseAuthAdapter
 import com.robotcentinela.app.identity.adapters.supabase.SupabaseHomeScopeAdapter
 import com.robotcentinela.app.identity.ports.AuthPort
@@ -47,13 +49,17 @@ class Adapters(
         /**
          * Adaptadores de Supabase conectados al backend real, según el esquema del equipo. Agregados
          * (cálculo en servidor) y planos (archivo del mapa en Storage) todavía esperan contrato (B8).
+         *
+         * Con [publicRead] (build `demo`) no hay inicio de sesión: la app lee solo con la clave pública, como
+         * el rol `anon`. Solo cambian la sesión, el ámbito de domicilio y las columnas de telemetría;
+         * el resto de los adaptadores y todo `:core` son los mismos.
          */
-        fun supabase(config: SupabaseConfig, scope: CoroutineScope): Adapters {
+        fun supabase(config: SupabaseConfig, scope: CoroutineScope, publicRead: Boolean = false): Adapters {
             val client = SupabaseClientFactory.create(config)
             return Adapters(
-                auth = SupabaseAuthAdapter(client, scope),
-                homeScope = SupabaseHomeScopeAdapter(client),
-                telemetryQuery = SupabaseTelemetryQueryAdapter(client),
+                auth = if (publicRead) PublicReadAuthAdapter() else SupabaseAuthAdapter(client, scope),
+                homeScope = if (publicRead) PublicReadHomeScopeAdapter(client) else SupabaseHomeScopeAdapter(client),
+                telemetryQuery = SupabaseTelemetryQueryAdapter(client, publicRead),
                 telemetryNotifier = SupabaseTelemetryChangeNotifier(client),
                 alertQuery = SupabaseAlertQueryAdapter(client),
                 capabilities = SupabaseCapabilitiesAdapter(client),
