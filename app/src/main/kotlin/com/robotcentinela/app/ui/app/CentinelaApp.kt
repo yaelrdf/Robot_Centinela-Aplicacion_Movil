@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.robotcentinela.app.R
 import com.robotcentinela.app.shell.AppContainer
+import com.robotcentinela.app.ui.auth.LoginScreen
 import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.components.ErrorState
 import com.robotcentinela.app.ui.homes.HomeSelectionScreen
@@ -49,7 +50,7 @@ private fun AppContent(container: AppContainer, preferences: UiPreferences) {
         val state by root.state.collectAsStateWithLifecycle()
         when (val s = state) {
             RootState.Connecting -> Connecting()
-            is RootState.NeedsSession -> SessionProblem(s.message, onRetry = root::retrySession)
+            RootState.NeedsLogin -> LoginScreen()
             RootState.ChoosingHome -> HomeSelectionScreen(onChosen = root::homeChosen)
             is RootState.Ready -> MainScreen(scope = s.scope, onChangeHome = root::changeHome)
         }

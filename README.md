@@ -10,16 +10,17 @@ persistió. **No controla el robot**: el inicio, la pausa y la parada son locale
 autoridad de seguridad (expediente §1, §7.1). Tampoco calcula alertas: **la lógica de alertas, los
 umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 
-> **Estado:** borrador. La interfaz es una **propuesta** sobre la guía de diseño de Ingeniería de
-> Software. Varios contratos de datos son **provisionales** hasta que backend publique el esquema de
-> Supabase (ver [docs/pendientes.md](docs/pendientes.md)). La app se conecta solo al backend real
-> (Supabase); el inicio de sesión se integra al final, por indicación del equipo.
+> **Estado:** Implementación completa del frontend y backend en Android con Jetpack Compose y
+> arquitectura hexagonal. Conectada al backend real en Supabase (telemetría, incidentes,
+> misiones y autenticación mediante Supabase Auth). Contratos no publicados por el servidor (mapas
+> vectoriales en Storage y comandos remotos) cuentan con manejo de degradación elegante y avisos
+> explícitos al usuario.
 
 ## Alcance de esta versión
 
 | Incluido | Historias |
 |---|---|
-| Inicio y cierre de sesión con Supabase Auth, y selección explícita del domicilio | HU01 |
+| Inicio y cierre de sesión con Supabase Auth, recuperación de acceso y selección explícita del domicilio | HU01, RF01, RF02 |
 | Semántica de lecturas: señal cruda sin calibrar (nunca ppm), "No instalado", "Sin dato" (nunca 0), calentando, fallo, fuera de rango | HU02, HU20 |
 | Sincronización en vivo por `stream_version`: snapshot, deltas, reconexión y reconciliación | HU03 |
 | Edad del dato por canal y paso a "atrasado" | HU04 |
@@ -27,8 +28,8 @@ umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 | Batería con método ("Porcentaje no disponible" si solo hay voltaje) | HU08 |
 | Pose con incertidumbre e IDs de mapa y misión (sin geometría de mapa) | HU05, HU06 (parcial) |
 | Fixtures sintéticos de prueba | HU15 (parcial) |
-| Interfaz Compose según los mockups móviles: Resumen, Mapa, Misiones e Historial (Eventos desde la campana), con tema claro/oscuro | HU02 a HU08, HU12, HU20 |
-| Plano por versión de mapa y resumen de misión: contratos **provisionales** en `:core`, sin adaptador todavía (la interfaz muestra "pendiente de backend") | HU05, HU06, HU08 |
+| Interfaz Compose según los mockups móviles: Pantalla de Login, Resumen, Mapa, Misiones, Historial, Eventos y Ajustes con tema claro/oscuro y Poppins | HU01 a HU08, HU12, HU20 |
+| Plano por versión de mapa y resumen de misión: contratos provisionales en `:core`, la interfaz muestra estado informativo en ausencia de archivo | HU05, HU06, HU08 |
 
 **Fuera de esta versión:** las calibraciones
 detalladas, la exportación CSV, push, video y comandos. La trazabilidad completa está en

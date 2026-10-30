@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
@@ -48,6 +49,11 @@ fun LineChart(
     val colors = CentinelaTheme.colors
     val measurer = rememberTextMeasurer()
     val axisStyle = TextStyle(fontFamily = Poppins, fontSize = 11.sp, color = colors.textSecondary)
+
+    // Reutilización de paths para optimización de memoria y menor presión al GC
+    val reusableBandPath = remember { Path() }
+    val reusableFillPath = remember { Path() }
+    val reusableLinePath = remember { Path() }
 
     val values = points.flatMap { listOfNotNull(it.y, it.low, it.high) }
     val minX = points.minOfOrNull { it.xMs } ?: 0L
@@ -122,27 +128,27 @@ fun LineChart(
         segments.forEach { seg ->
             // Banda mínimo-máximo.
             if (seg.all { it.low != null && it.high != null } && seg.size > 1) {
-                val band = Path()
-                seg.forEachIndexed { i, p -> if (i == 0) band.moveTo(px(p.xMs), py(p.high!!)) else band.lineTo(px(p.xMs), py(p.high!!)) }
-                seg.asReversed().forEach { p -> band.lineTo(px(p.xMs), py(p.low!!)) }
-                band.close()
-                drawPath(band, colors.primary.copy(alpha = 0.15f))
+                reusableBandPath.reset()
+                seg.forEachIndexed { i, p -> if (i == 0) reusableBandPath.moveTo(px(p.xMs), py(p.high!!)) else reusableBandPath.lineTo(px(p.xMs), py(p.high!!)) }
+                seg.asReversed().forEach { p -> reusableBandPath.lineTo(px(p.xMs), py(p.low!!)) }
+                reusableBandPath.close()
+                drawPath(reusableBandPath, colors.primary.copy(alpha = 0.15f))
             }
             // Área bajo la serie (estilo del mockup). Cada tramo continuo se rellena por separado: los huecos quedan vacíos.
             if (area && seg.size > 1) {
-                val fill = Path()
-                fill.moveTo(px(seg.first().xMs), bottom)
-                seg.forEach { p -> fill.lineTo(px(p.xMs), py(p.y!!)) }
-                fill.lineTo(px(seg.last().xMs), bottom)
-                fill.close()
-                drawPath(fill, colors.primary.copy(alpha = 0.35f))
+                reusableFillPath.reset()
+                reusableFillPath.moveTo(px(seg.first().xMs), bottom)
+                seg.forEach { p -> reusableFillPath.lineTo(px(p.xMs), py(p.y!!)) }
+                reusableFillPath.lineTo(px(seg.last().xMs), bottom)
+                reusableFillPath.close()
+                drawPath(reusableFillPath, colors.primary.copy(alpha = 0.35f))
             }
             if (seg.size == 1) {
                 drawCircle(colors.primary, 3.dp.toPx(), Offset(px(seg[0].xMs), py(seg[0].y!!)))
             } else {
-                val line = Path()
-                seg.forEachIndexed { i, p -> if (i == 0) line.moveTo(px(p.xMs), py(p.y!!)) else line.lineTo(px(p.xMs), py(p.y!!)) }
-                drawPath(line, colors.primary, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+                reusableLinePath.reset()
+                seg.forEachIndexed { i, p -> if (i == 0) reusableLinePath.moveTo(px(p.xMs), py(p.y!!)) else reusableLinePath.lineTo(px(p.xMs), py(p.y!!)) }
+                drawPath(reusableLinePath, colors.primary, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
             }
         }
 

@@ -99,10 +99,9 @@ fun MissionsScreen(robot: Robot, zone: ZoneId, currentMissionId: MissionId?) {
             SectionCard {
                 EmptyState(
                     icon = R.drawable.ic_edit_road,
-                    title = "Misiones pendientes de backend",
-                    message = "El backend todavía no publica el contrato de misiones (nombre, estaciones previstas, " +
-                        "visitadas y omitidas, duración y consumo). " +
-                        (if (currentMissionId != null) "El último frame sí indica una misión en curso." else "El último frame no indica misión."),
+                    title = "Sin historial de misiones",
+                    message = "El servidor no tiene habilitado el registro ampliado de misiones (estaciones de muestreo, desvío y métricas de navegación). " +
+                        (if (currentMissionId != null) "La telemetría en vivo sí reporta una misión activa." else "Actualmente el robot no reporta misión en curso."),
                 )
             }
         } else {

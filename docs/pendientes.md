@@ -33,7 +33,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 
 | # | Pregunta | Supuesto actual |
 |---|---|---|
-| R1 | Método de autenticación de Supabase Auth | Correo y contraseña, porque RF01 pide "recuperar acceso". Mientras no exista la pantalla de login (va al final), los builds debug entran con una cuenta de prueba de `local.properties` (`DevAccount.kt`) |
+| R1 | Método de autenticación de Supabase Auth | **Resuelto:** Autenticación por correo y contraseña implementada con `LoginScreen`, `SignIn`, `SignOut` y `RecoverAccess`. Las compilaciones debug conservan botón para autocompletar la cuenta de prueba de `local.properties` (`DevAccount.kt`). | `LoginScreen.kt`, `LoginViewModel.kt`, `RootViewModel.kt` |
 | R2 | Valores de `memberships.role` | Se conserva el texto; la app no autoriza por rol |
 | R3 | Dispositivos objetivo (versión mínima de Android) | `minSdk` 29 (Android 10), definido por el equipo |
 | R4 | Validar la interfaz (docs/ui/interfaz-movil.md) contra los mockups móviles | Implementada según `Diseño de Interfaz móvil.pdf` |

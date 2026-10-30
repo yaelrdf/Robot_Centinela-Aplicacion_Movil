@@ -105,8 +105,7 @@ fun AlertDetailSheet(alert: Alert, zone: ZoneId, today: LocalDate, onDismiss: ()
             HorizontalDivider(color = colors.border)
             Text("Evidencia", style = MaterialTheme.typography.titleSmall)
             Text(
-                "Las ocurrencias y la evidencia registrada de cada evento se mostrarán cuando backend publique su " +
-                    "contrato (pendiente B7).",
+                "Las capturas de evidencia y el registro de ocurrencias detalladas se desplegarán al estar vinculadas al servidor.",
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.textSecondary,
             )
