@@ -3,14 +3,17 @@ package com.robotcentinela.app.ui.history
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +25,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -33,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -131,8 +136,18 @@ fun HistoryScreen(robot: Robot, zone: ZoneId, onChangeHome: () -> Unit) {
                 }
             }
             HorizontalDivider(color = colors.border, modifier = Modifier.padding(vertical = Spacing.m))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Canal de lectura", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
                 ChannelDropdown(state, vm::setChannel)
+            }
+            Row(
+                Modifier.fillMaxWidth().padding(top = Spacing.xs),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            ) {
                 StatValue("Máxima", state.stats?.max, Modifier.weight(1f))
                 StatValue("Mínima", state.stats?.min, Modifier.weight(1f))
                 StatValue("Promedio", state.stats?.avg, Modifier.weight(1f))
@@ -163,29 +178,63 @@ fun HistoryScreen(robot: Robot, zone: ZoneId, onChangeHome: () -> Unit) {
 @Composable
 private fun SummaryCard(state: HistoryUiState) {
     val colors = CentinelaTheme.colors
-    SectionCard(contentPadding = Spacing.m) {
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text("Resumen", style = MaterialTheme.typography.labelMedium)
-                SummaryLine(R.drawable.ic_flag, "Misiones completadas", "—")
-                SummaryLine(R.drawable.ic_schedule, "Horas de operación", "—")
-                Text("Pendiente de backend", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-            }
-            VerticalDivider(Modifier.fillMaxHeight(), color = colors.border)
-            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text("Alertas registradas", style = MaterialTheme.typography.labelMedium)
-                when {
-                    state.alertsLoading -> SkeletonBlock(Modifier.size(64.dp), height = 64.dp)
-                    state.alertsError != null -> Text("No se pudieron cargar", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-                    else -> AlertDonut(state.alerts ?: AlertBreakdown(0, 0, 0))
+    SectionCard(contentPadding = Spacing.l) {
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val isWide = maxWidth >= 560.dp
+            if (isWide) {
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                        Text("Resumen", style = MaterialTheme.typography.labelMedium)
+                        SummaryLine(R.drawable.ic_flag, "Misiones completadas", "—")
+                        SummaryLine(R.drawable.ic_schedule, "Horas de operación", "—")
+                        Text("Pendiente de backend", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                    }
+                    VerticalDivider(Modifier.fillMaxHeight(), color = colors.border)
+                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                        Text("Alertas registradas", style = MaterialTheme.typography.labelMedium)
+                        when {
+                            state.alertsLoading -> SkeletonBlock(Modifier.size(64.dp), height = 64.dp)
+                            state.alertsError != null -> Text("No se pudieron cargar", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                            else -> AlertDonut(state.alerts ?: AlertBreakdown(0, 0, 0))
+                        }
+                    }
+                    VerticalDivider(Modifier.fillMaxHeight(), color = colors.border)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                        Text("Estado de los sensores", style = MaterialTheme.typography.labelMedium)
+                        Text("Calibrados: —", style = MaterialTheme.typography.labelSmall)
+                        Text("Última calibración: —", style = MaterialTheme.typography.labelSmall)
+                        Text("Pendiente de backend", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                    }
                 }
-            }
-            VerticalDivider(Modifier.fillMaxHeight(), color = colors.border)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text("Estado de los sensores", style = MaterialTheme.typography.labelMedium)
-                Text("Calibrados: —", style = MaterialTheme.typography.labelSmall)
-                Text("Última calibración: —", style = MaterialTheme.typography.labelSmall)
-                Text("Pendiente de backend", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                            Text("Resumen", style = MaterialTheme.typography.labelMedium)
+                            SummaryLine(R.drawable.ic_flag, "Misiones completadas", "—")
+                            SummaryLine(R.drawable.ic_schedule, "Horas de operación", "—")
+                            Text("Pendiente de backend", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                        }
+                        VerticalDivider(Modifier.fillMaxHeight(), color = colors.border)
+                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                            Text("Alertas registradas", style = MaterialTheme.typography.labelMedium)
+                            when {
+                                state.alertsLoading -> SkeletonBlock(Modifier.size(64.dp), height = 64.dp)
+                                state.alertsError != null -> Text("No se pudieron cargar", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                                else -> AlertDonut(state.alerts ?: AlertBreakdown(0, 0, 0))
+                            }
+                        }
+                    }
+                    HorizontalDivider(color = colors.border)
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                        Text("Estado de los sensores", style = MaterialTheme.typography.labelMedium)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Calibrados: —", style = MaterialTheme.typography.labelSmall)
+                            Text("Última calibración: —", style = MaterialTheme.typography.labelSmall)
+                        }
+                        Text("Pendiente de backend", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                    }
+                }
             }
         }
     }
@@ -213,11 +262,11 @@ private fun AlertDonut(breakdown: AlertBreakdown) {
     }
     Box(Modifier.size(72.dp).semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(64.dp)) {
-            val stroke = 14.dp.toPx()
+            val stroke = 13.dp.toPx()
             val inset = stroke / 2
             val arcSize = Size(size.width - stroke, size.height - stroke)
             if (total == 0) {
-                drawArc(colors.border, 0f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(stroke))
+                drawArc(colors.border, 0f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
             } else {
                 var start = -90f
                 listOf(
@@ -227,7 +276,7 @@ private fun AlertDonut(breakdown: AlertBreakdown) {
                 ).forEach { (count, color) ->
                     if (count > 0) {
                         val sweep = 360f * count / total
-                        drawArc(color, start, sweep, false, Offset(inset, inset), arcSize, style = Stroke(stroke))
+                        drawArc(color, start, sweep, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
                         start += sweep
                     }
                 }
@@ -252,10 +301,12 @@ private fun ChannelDropdown(state: HistoryUiState, onSelect: (ChannelOption) -> 
         Button(
             onClick = { open = true },
             shape = CentinelaShapes.pill,
-            colors = ButtonDefaults.buttonColors(containerColor = colors.secondary, contentColor = colors.onWarning),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = Spacing.m),
+            colors = ButtonDefaults.buttonColors(containerColor = colors.warning, contentColor = colors.onWarning),
+            contentPadding = PaddingValues(horizontal = Spacing.m, vertical = Spacing.xs),
+            modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget),
         ) {
             Text(state.channel.label, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+            Spacer(Modifier.width(Spacing.xs))
             AppIcon(R.drawable.ic_expand_more, size = 16.dp, tint = colors.onWarning)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
@@ -269,8 +320,18 @@ private fun ChannelDropdown(state: HistoryUiState, onSelect: (ChannelOption) -> 
 @Composable
 private fun StatValue(label: String, value: String?, modifier: Modifier = Modifier) {
     val colors = CentinelaTheme.colors
-    Column(modifier.semantics(mergeDescendants = true) {}, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-        Text(value ?: "—", style = CentinelaText.metricUnit.copy(color = colors.textPrimary), maxLines = 1)
+    Surface(
+        modifier = modifier.semantics(mergeDescendants = true) {},
+        shape = CentinelaShapes.control,
+        color = colors.statusNeutral.copy(alpha = 0.35f),
+    ) {
+        Column(
+            Modifier.padding(vertical = Spacing.s, horizontal = Spacing.s),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(label, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+            Text(value ?: "—", style = CentinelaText.metricUnit.copy(color = colors.textPrimary), maxLines = 1)
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.robotcentinela.app.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,12 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -130,11 +133,19 @@ fun FloorPlanView(
             }
         }
     }
-    val signals = trajectory.mapNotNull { it.signal }
-    val signalMin = signals.minOrNull()
-    val signalMax = signals.maxOrNull()
+    val signals = remember(trajectory) { trajectory.mapNotNull { it.signal } }
+    val signalMin = remember(signals) { signals.minOrNull() }
+    val signalMax = remember(signals) { signals.maxOrNull() }
+    val samplePoints = remember(trajectory, layers.transit) {
+        trajectory.filter { it.signal != null && (it.sampling || layers.transit) }
+    }
 
-    Box(modifier.clip(CentinelaShapes.control).background(colors.surface)) {
+    Box(
+        modifier
+            .clip(CentinelaShapes.control)
+            .background(colors.surface)
+            .border(CentinelaShapes.borderWidth, colors.border, CentinelaShapes.control),
+    ) {
         Canvas(
             Modifier
                 .fillMaxSize()
@@ -175,33 +186,48 @@ fun FloorPlanView(
                     }
                 }
                 p.walls.forEach { w ->
-                    drawLine(colors.textPrimary, t.point(w.from.xM, w.from.yM), t.point(w.to.xM, w.to.yM), 3.dp.toPx(), StrokeCap.Square)
+                    drawLine(colors.textPrimary, t.point(w.from.xM, w.from.yM), t.point(w.to.xM, w.to.yM), 3.dp.toPx(), StrokeCap.Round)
                 }
                 p.rooms.forEach { room ->
                     drawText(textMeasurer, room.name, Offset(t.x(room.bounds.left) + 6.dp.toPx(), t.y(room.bounds.top) + 4.dp.toPx()), labelStyle)
                 }
-                // Estaciones: cuadros con contorno (distintos de muestras y de la posición).
+                // Estaciones: cuadros redondeados con contorno (distintos de muestras y de la posición).
                 p.stations.forEach { s ->
                     val c = t.point(s.position.xM, s.position.yM)
                     val half = 6.dp.toPx()
-                    drawRect(colors.primary, Offset(c.x - half, c.y - half), Size(half * 2, half * 2), style = Stroke(2.dp.toPx()))
+                    drawRoundRect(
+                        colors.primary,
+                        Offset(c.x - half, c.y - half),
+                        Size(half * 2, half * 2),
+                        cornerRadius = CornerRadius(2.dp.toPx()),
+                        style = Stroke(2.dp.toPx(), join = StrokeJoin.Round),
+                    )
                     drawText(textMeasurer, s.id.value, Offset(c.x + half + 2, c.y - half - 2), smallStyle)
                 }
             }
 
-            // Ruta recorrida.
+            // Ruta recorrida con uniones y vértices suavizados.
             if (layers.route && trajectory.size > 1) {
                 reusableRoutePath.reset()
                 trajectory.forEachIndexed { i, pt ->
                     val o = t.point(pt.xM, pt.yM)
                     if (i == 0) reusableRoutePath.moveTo(o.x, o.y) else reusableRoutePath.lineTo(o.x, o.y)
                 }
-                drawPath(reusableRoutePath, colors.textSecondary, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+                drawPath(
+                    reusableRoutePath,
+                    colors.textSecondary,
+                    style = Stroke(
+                        width = 2.5.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                        pathEffect = PathEffect.cornerPathEffect(4.dp.toPx()),
+                    ),
+                )
             }
 
             // Muestras de señal relativa: rombos (no se confunden con el marcador de posición, §12.5).
             if (layers.samples && signalMin != null && signalMax != null) {
-                trajectory.filter { it.signal != null && (it.sampling || layers.transit) }.forEach { pt ->
+                samplePoints.forEach { pt ->
                     val f = if (signalMax > signalMin) ((pt.signal!! - signalMin) / (signalMax - signalMin)).toFloat() else 0.5f
                     drawDiamond(t.point(pt.xM, pt.yM), 5.dp.toPx(), colors.secondary.copy(alpha = 0.25f + 0.75f * f), colors.textPrimary, reusableDiamondPath)
                 }
@@ -347,7 +373,7 @@ private fun DrawScope.drawDiamond(center: Offset, half: Float, fill: Color, outl
         close()
     }
     drawPath(path, fill)
-    drawPath(path, outline, style = Stroke(1.dp.toPx()))
+    drawPath(path, outline, style = Stroke(1.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
 }
 
 private fun DrawScope.drawMetricGrid(t: MapTransform, color: Color) {

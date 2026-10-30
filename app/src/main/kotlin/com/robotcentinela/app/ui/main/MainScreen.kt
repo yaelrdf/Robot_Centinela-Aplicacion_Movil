@@ -1,5 +1,11 @@
 package com.robotcentinela.app.ui.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -122,6 +128,7 @@ fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
                 contentWindowInsets = if (wide || live.robot == null) WindowInsets.navigationBars else WindowInsets(0, 0, 0, 0),
                 topBar = {
                     Header(
+                        displayName = deps.preferences.displayName(),
                         homeName = scope.home.name,
                         robotCode = live.robot?.publicCode,
                         robots = live.robots.map { it.publicCode },
@@ -134,14 +141,20 @@ fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
                 bottomBar = { if (!wide && live.robot != null) BottomBar(navController) },
             ) { padding ->
                 Column(Modifier.padding(padding).fillMaxSize()) {
-                    live.bannerAlert?.let { alert ->
-                        Banner(
-                            text = "${OperationPresentation.severity(alert.severity).text}: ${OperationPresentation.alertTitle(alert.type)}",
-                            actionLabel = "Ver detalle",
-                            onAction = { selectedAlert = alert },
-                            critical = true,
-                            onDismiss = { vm.dismissBanner(alert.id) },
-                        )
+                    AnimatedVisibility(
+                        visible = live.bannerAlert != null,
+                        enter = expandVertically(tween(240)) + fadeIn(tween(240)),
+                        exit = shrinkVertically(tween(180)) + fadeOut(tween(180)),
+                    ) {
+                        live.bannerAlert?.let { alert ->
+                            Banner(
+                                text = "${OperationPresentation.severity(alert.severity).text}: ${OperationPresentation.alertTitle(alert.type)}",
+                                actionLabel = "Ver detalle",
+                                onAction = { selectedAlert = alert },
+                                critical = true,
+                                onDismiss = { vm.dismissBanner(alert.id) },
+                            )
+                        }
                     }
                     if (live.robot == null) {
                         EmptyState(
@@ -193,7 +206,13 @@ private fun MainNavHost(
     onChangeHome: () -> Unit,
 ) {
     val robot = live.robot ?: return
-    NavHost(navController = navController, startDestination = SummaryRoute, modifier = Modifier.fillMaxSize()) {
+    NavHost(
+        navController = navController,
+        startDestination = SummaryRoute,
+        enterTransition = { fadeIn(tween(200)) },
+        exitTransition = { fadeOut(tween(150)) },
+        modifier = Modifier.fillMaxSize(),
+    ) {
         composable<SummaryRoute> {
             SummaryScreen(
                 live = live,
@@ -246,7 +265,7 @@ private fun BottomBar(navController: NavHostController) {
                 icon = { AppIcon(tab.icon, size = 24.dp, tint = if (selected) colors.onWarning else colors.onChrome) },
                 label = { Text(tab.label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = colors.secondary,
+                    indicatorColor = colors.warning,
                     selectedTextColor = colors.onChrome,
                     unselectedTextColor = colors.onChrome,
                 ),
@@ -269,7 +288,7 @@ private fun SideRail(navController: NavHostController) {
                 icon = { AppIcon(tab.icon, size = 24.dp, tint = if (selected) colors.onWarning else colors.onChrome) },
                 label = { Text(tab.label, style = MaterialTheme.typography.labelSmall) },
                 colors = NavigationRailItemDefaults.colors(
-                    indicatorColor = colors.secondary,
+                    indicatorColor = colors.warning,
                     selectedTextColor = colors.onChrome,
                     unselectedTextColor = colors.onChrome,
                 ),
@@ -280,11 +299,10 @@ private fun SideRail(navController: NavHostController) {
 
 /**
  * Cabecera del mockup: avatar, saludo, domicilio y robot, avisos y ajustes.
- *
- * Sin inicio de sesión todavía no hay nombre de usuario ni "Cerrar sesión": se agregan junto con el login.
  */
 @Composable
 private fun Header(
+    displayName: String?,
     homeName: String,
     robotCode: String?,
     robots: List<String>,
@@ -295,6 +313,7 @@ private fun Header(
 ) {
     val colors = CentinelaTheme.colors
     var robotMenu by remember { mutableStateOf(false) }
+    val greeting = if (!displayName.isNullOrBlank()) "Hola, $displayName!" else "Hola!"
     Row(
         Modifier
             .fillMaxWidth()
@@ -304,9 +323,9 @@ private fun Header(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
-        AppIcon(R.drawable.ic_account_circle, size = 52.dp, tint = colors.onChrome)
+        AppIcon(R.drawable.ic_account_circle, size = 50.dp, tint = colors.onChrome)
         Column(Modifier.weight(1f)) {
-            Text("Hola!", style = MaterialTheme.typography.bodyLarge, color = colors.onChrome, maxLines = 1)
+            Text(greeting, style = MaterialTheme.typography.bodyLarge, color = colors.onChrome, maxLines = 1)
             val place = listOfNotNull(homeName, robotCode).joinToString(" · ")
             if (robots.size > 1) {
                 Box {
@@ -328,7 +347,7 @@ private fun Header(
             }
         }
         IconButton(onClick = onBell) {
-            BadgedBox(badge = { if (openAlerts > 0) Badge(containerColor = colors.secondary, contentColor = colors.onWarning) }) {
+            BadgedBox(badge = { if (openAlerts > 0) Badge(containerColor = colors.warning, contentColor = colors.onWarning) }) {
                 AppIcon(
                     R.drawable.ic_notifications,
                     contentDescription = if (openAlerts > 0) "Eventos: hay un aviso crítico abierto" else "Eventos",

@@ -1,15 +1,24 @@
 package com.robotcentinela.app.ui.components
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -32,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -79,7 +89,8 @@ fun RangeSelector(
             Button(
                 onClick = { menuOpen = true },
                 shape = CentinelaShapes.pill,
-                colors = ButtonDefaults.buttonColors(containerColor = colors.secondary, contentColor = colors.onWarning),
+                colors = ButtonDefaults.buttonColors(containerColor = colors.warning, contentColor = colors.onWarning),
+                contentPadding = PaddingValues(horizontal = Spacing.l, vertical = Spacing.s),
                 modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget),
             ) {
                 Text(range.label, style = MaterialTheme.typography.labelMedium)
@@ -144,7 +155,11 @@ fun <T> FilterChipRow(
     modifier: Modifier = Modifier,
 ) {
     val colors = CentinelaTheme.colors
-    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+    FlowRow(
+        modifier,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
         options.forEach { option ->
             val isSelected = option in selected
             FilterChip(
@@ -180,17 +195,31 @@ fun PagerControls(
 ) {
     val colors = CentinelaTheme.colors
     Row(
-        modifier.fillMaxWidth(),
+        modifier.fillMaxWidth().padding(vertical = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        OutlinedButton(onClick = onPrevious, enabled = hasPrevious, shape = CentinelaShapes.control) {
+        OutlinedButton(
+            onClick = onPrevious,
+            enabled = hasPrevious,
+            shape = CentinelaShapes.control,
+            contentPadding = PaddingValues(horizontal = Spacing.l, vertical = Spacing.s),
+            modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget),
+        ) {
             AppIcon(R.drawable.ic_chevron_left, size = 18.dp, tint = if (hasPrevious) colors.textPrimary else colors.textSecondary)
+            Spacer(Modifier.width(Spacing.xs))
             Text("Anterior")
         }
         Text("Página ${page + 1}", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
-        OutlinedButton(onClick = onNext, enabled = hasNext, shape = CentinelaShapes.control) {
+        OutlinedButton(
+            onClick = onNext,
+            enabled = hasNext,
+            shape = CentinelaShapes.control,
+            contentPadding = PaddingValues(horizontal = Spacing.l, vertical = Spacing.s),
+            modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget),
+        ) {
             Text("Siguiente")
+            Spacer(Modifier.width(Spacing.xs))
             AppIcon(R.drawable.ic_chevron_right, size = 18.dp, tint = if (hasNext) colors.textPrimary else colors.textSecondary)
         }
     }
@@ -200,8 +229,18 @@ fun PagerControls(
 @Composable
 fun RefreshingNote(text: String = "Actualizando…", modifier: Modifier = Modifier) {
     val colors = CentinelaTheme.colors
+    val infiniteTransition = rememberInfiniteTransition(label = "syncRotation")
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "syncAngle",
+    )
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        AppIcon(R.drawable.ic_sync, size = 16.dp, tint = colors.textSecondary, modifier = Modifier.size(16.dp))
+        AppIcon(R.drawable.ic_sync, size = 16.dp, tint = colors.textSecondary, modifier = Modifier.size(16.dp).rotate(angle))
         Text(text, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
     }
 }

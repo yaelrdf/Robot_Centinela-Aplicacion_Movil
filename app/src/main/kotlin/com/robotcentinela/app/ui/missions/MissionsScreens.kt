@@ -1,9 +1,13 @@
 package com.robotcentinela.app.ui.missions
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -12,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -77,59 +82,74 @@ fun MissionsScreen(robot: Robot, zone: ZoneId, currentMissionId: MissionId?) {
     }
     val selected = state.missions.firstOrNull { it.id.value.toString() == selectedId }
 
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m),
-    ) {
-        ScreenTitle("Misiones", "Robot ${robot.publicCode}")
-        Row(Modifier.fillMaxWidth()) {
-            Spacer(Modifier.weight(1f))
-            Button(
-                onClick = { creating = true },
-                shape = CentinelaShapes.pill,
-                colors = ButtonDefaults.buttonColors(containerColor = colors.secondary, contentColor = colors.onWarning),
-                modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget),
-            ) {
-                Text("Generar nueva misión ", style = MaterialTheme.typography.labelMedium)
-                AppIcon(R.drawable.ic_add_circle, size = 18.dp, tint = colors.onWarning)
-            }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val isWide = maxWidth >= 760.dp
+        val columns = when {
+            maxWidth >= 820.dp -> 3
+            maxWidth >= 340.dp -> 2
+            else -> 1
         }
 
-        if (!state.supported) {
-            SectionCard {
-                EmptyState(
-                    icon = R.drawable.ic_edit_road,
-                    title = "Sin historial de misiones",
-                    message = "El servidor no tiene habilitado el registro ampliado de misiones (estaciones de muestreo, desvío y métricas de navegación). " +
-                        (if (currentMissionId != null) "La telemetría en vivo sí reporta una misión activa." else "Actualmente el robot no reporta misión en curso."),
-                )
-            }
-        } else {
-            val error = state.error
-            when {
-                state.loading && state.missions.isEmpty() -> SkeletonBlock(Modifier.fillMaxWidth(), height = 160.dp)
-                error != null && state.missions.isEmpty() -> ErrorState(OperationPresentation.errorMessage(error), onRetry = vm::retry)
-                state.missions.isEmpty() -> SectionCard {
-                    EmptyState(R.drawable.ic_edit_road, "Sin misiones", "El robot todavía no registra misiones.")
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                ScreenTitle("Misiones", "Robot ${robot.publicCode}")
+                Button(
+                    onClick = { creating = true },
+                    shape = CentinelaShapes.pill,
+                    contentPadding = PaddingValues(horizontal = Spacing.l, vertical = Spacing.s),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.warning, contentColor = colors.onWarning),
+                    modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget),
+                ) {
+                    Text("Generar nueva misión", style = MaterialTheme.typography.labelMedium)
+                    Spacer(Modifier.width(Spacing.xs))
+                    AppIcon(R.drawable.ic_add_circle, size = 18.dp, tint = colors.onWarning)
                 }
-                else -> {
-                    selected?.let { mission ->
-                        MissionDetailsCard(mission)
-                        SelectedMissionMap(robot, zone, mission)
+            }
+
+            if (!state.supported) {
+                SectionCard {
+                    EmptyState(
+                        icon = R.drawable.ic_edit_road,
+                        title = "Sin historial de misiones",
+                        message = "El servidor no tiene habilitado el registro ampliado de misiones (estaciones de muestreo, desvío y métricas de navegación). " +
+                            (if (currentMissionId != null) "La telemetría en vivo sí reporta una misión activa." else "Actualmente el robot no reporta misión en curso."),
+                    )
+                }
+            } else {
+                val error = state.error
+                when {
+                    state.loading && state.missions.isEmpty() -> SkeletonBlock(Modifier.fillMaxWidth(), height = 160.dp)
+                    error != null && state.missions.isEmpty() -> ErrorState(OperationPresentation.errorMessage(error), onRetry = vm::retry)
+                    state.missions.isEmpty() -> SectionCard {
+                        EmptyState(R.drawable.ic_edit_road, "Sin misiones", "El robot todavía no registra misiones.")
                     }
-                    MissionGrid(
-                        missions = state.missions,
-                        selectedId = selectedId,
-                        zone = zone,
-                        onSelect = { selectedId = it.id.value.toString() },
-                    )
-                    PagerControls(
-                        page = state.page,
-                        hasPrevious = state.page > 0 && !state.loading,
-                        hasNext = state.hasNext && !state.loading,
-                        onPrevious = vm::previous,
-                        onNext = vm::next,
-                    )
+                    else -> {
+                        selected?.let { mission ->
+                            MissionDetailsCard(mission)
+                            SelectedMissionMap(robot, zone, mission, isWide = isWide)
+                        }
+                        MissionGrid(
+                            missions = state.missions,
+                            selectedId = selectedId,
+                            zone = zone,
+                            columns = columns,
+                            onSelect = { selectedId = it.id.value.toString() },
+                        )
+                        PagerControls(
+                            page = state.page,
+                            hasPrevious = state.page > 0 && !state.loading,
+                            hasNext = state.hasNext && !state.loading,
+                            onPrevious = vm::previous,
+                            onNext = vm::next,
+                        )
+                    }
                 }
             }
         }
@@ -146,21 +166,21 @@ private fun MissionDetailsCard(mission: MissionSummary) {
     val colors = CentinelaTheme.colors
     SectionCard(title = "Detalles de misión") {
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m), verticalAlignment = Alignment.Top) {
-            Column(Modifier.weight(1.2f)) {
+            Column(Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     AppIcon(R.drawable.ic_replay, size = 18.dp, tint = colors.textPrimary)
                     Text(mission.name ?: "Misión sin nombre", style = MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
                 Text(OperationPresentation.missionStatus(mission.status).text, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
             }
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     AppIcon(R.drawable.ic_timelapse, size = 16.dp, tint = colors.textPrimary)
                     Text("Duración", style = MaterialTheme.typography.labelMedium)
                 }
                 Text(OperationPresentation.missionDuration(mission, Instant.now()), style = MaterialTheme.typography.titleMedium)
             }
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     AppIcon(R.drawable.ic_conversion_path, size = 16.dp, tint = colors.textPrimary)
                     Text("Estaciones", style = MaterialTheme.typography.labelMedium)
@@ -173,7 +193,7 @@ private fun MissionDetailsCard(mission: MissionSummary) {
 
 /** Mapa de la misión seleccionada, sobre la versión EXACTA de mapa que usó (HU05 CDA 2). */
 @Composable
-private fun SelectedMissionMap(robot: Robot, zone: ZoneId, mission: MissionSummary) {
+private fun SelectedMissionMap(robot: Robot, zone: ZoneId, mission: MissionSummary, isWide: Boolean = false) {
     val deps = uiDependencies
     val colors = CentinelaTheme.colors
     val id = mission.id.value.toString()
@@ -189,7 +209,7 @@ private fun SelectedMissionMap(robot: Robot, zone: ZoneId, mission: MissionSumma
                 trajectory = state.trajectory,
                 robot = null,
                 layers = MapLayers(route = true, samples = true),
-                modifier = Modifier.fillMaxWidth().height(240.dp),
+                modifier = Modifier.fillMaxWidth().height(if (isWide) 300.dp else 240.dp),
                 interactive = true,
                 accessibilitySummary = "Trayectoria de la misión con ${state.trajectory.size} puntos.",
             )
@@ -204,11 +224,17 @@ private fun SelectedMissionMap(robot: Robot, zone: ZoneId, mission: MissionSumma
     }
 }
 
-/** Cuadrícula de tarjetas de misión del mockup (dos columnas). */
+/** Cuadrícula adaptable de tarjetas de misión del mockup (dos columnas en teléfono, tres en tablet). */
 @Composable
-private fun MissionGrid(missions: List<MissionSummary>, selectedId: String?, zone: ZoneId, onSelect: (MissionSummary) -> Unit) {
+private fun MissionGrid(
+    missions: List<MissionSummary>,
+    selectedId: String?,
+    zone: ZoneId,
+    columns: Int = 2,
+    onSelect: (MissionSummary) -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
-        missions.chunked(2).forEach { row ->
+        missions.chunked(columns).forEach { row ->
             Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
                 row.forEach { mission ->
                     MissionCard(
@@ -219,7 +245,9 @@ private fun MissionGrid(missions: List<MissionSummary>, selectedId: String?, zon
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
+                repeat(columns - row.size) {
+                    Spacer(Modifier.weight(1f))
+                }
             }
         }
     }
@@ -228,6 +256,11 @@ private fun MissionGrid(missions: List<MissionSummary>, selectedId: String?, zon
 @Composable
 private fun MissionCard(mission: MissionSummary, selected: Boolean, zone: ZoneId, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = CentinelaTheme.colors
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) colors.graphic(StatusTone.Operational) else colors.border,
+        animationSpec = tween(durationMillis = 220),
+        label = "missionCardBorder",
+    )
     Surface(
         onClick = onClick,
         modifier = modifier,
@@ -236,10 +269,10 @@ private fun MissionCard(mission: MissionSummary, selected: Boolean, zone: ZoneId
         contentColor = colors.textPrimary,
         border = BorderStroke(
             if (selected) CentinelaShapes.focusWidth else CentinelaShapes.borderWidth,
-            if (selected) colors.graphic(StatusTone.Operational) else colors.border,
+            borderColor,
         ),
     ) {
-        Column(Modifier.padding(Spacing.m), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        Column(Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
             Text(mission.name ?: "Misión sin nombre", style = MaterialTheme.typography.titleSmall, maxLines = 2)
             IconLine(R.drawable.ic_calendar_month, Formats.dateTime(mission.startedAt, zone))
             IconLine(R.drawable.ic_timelapse, "Duración: ${OperationPresentation.missionDuration(mission, Instant.now())}")

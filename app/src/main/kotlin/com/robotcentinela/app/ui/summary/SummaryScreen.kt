@@ -1,6 +1,10 @@
 package com.robotcentinela.app.ui.summary
 
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -20,7 +24,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.robotcentinela.app.R
 import com.robotcentinela.app.environmentalmonitoring.domain.ChannelKey
@@ -62,9 +65,10 @@ fun SummaryScreen(
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val columns = if (maxWidth >= 600.dp) 4 else 2
+        val isWide = maxWidth >= 760.dp
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
         ) {
             ScreenTitle(
                 title = "Resumen del domicilio",
@@ -81,7 +85,13 @@ fun SummaryScreen(
                 )
             }
 
-            live.offlineNotice?.let { Notice(it, R.drawable.ic_cloud_off) }
+            AnimatedVisibility(
+                visible = live.offlineNotice != null,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                live.offlineNotice?.let { Notice(it, R.drawable.ic_cloud_off) }
+            }
             if (live.rejectedFrames > 0) {
                 Notice("${live.rejectedFrames} frames recibidos no cumplen el contrato de la app y no se muestran.", R.drawable.ic_info)
             }
@@ -89,8 +99,20 @@ fun SummaryScreen(
             // Tarjetas ambientales: 2 x 2 en móvil (mockup), 4 en fila en pantallas anchas.
             MetricGrid(if (live.initialLoading) List(4) { null } else live.primaryCards, columns, onOpenChannel)
             Operation(live)
-            MapCard(live, onOpenMap)
-            EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts)
+
+            if (isWide) {
+                Row(
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+                ) {
+                    MapCard(live, onOpenMap, Modifier.weight(1f).fillMaxHeight())
+                    EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts, Modifier.weight(1f).fillMaxHeight())
+                }
+            } else {
+                MapCard(live, onOpenMap)
+                EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts)
+            }
+
             Text(
                 "Un estado \"Dato válido\" no significa ausencia de gases. Las alertas las calcula el servidor con sus reglas.",
                 style = MaterialTheme.typography.bodySmall,
@@ -130,8 +152,10 @@ private fun MetricGrid(cards: List<MetricCardModel?>, columns: Int, onOpen: (Cha
 private fun MapCard(live: LiveUiState, onOpenMap: () -> Unit, modifier: Modifier = Modifier) {
     val colors = CentinelaTheme.colors
     SectionCard(
-        modifier = modifier.clickable(onClickLabel = "Abrir el mapa", role = Role.Button, onClick = onOpenMap),
+        modifier = modifier,
         title = "Mapa asistido 2D",
+        onClick = onOpenMap,
+        onClickLabel = "Abrir el mapa",
         trailing = { AppIcon(R.drawable.ic_chevron_right, tint = colors.textSecondary) },
     ) {
         val plan = (live.floorPlan as? FloorPlanState.Available)?.plan
@@ -183,9 +207,16 @@ fun mapSummary(live: LiveUiState): String = buildString {
 }
 
 @Composable
-private fun EventsCard(live: LiveUiState, onOpenEvents: () -> Unit, onOpenAlert: (Alert) -> Unit, onRetry: () -> Unit) {
+private fun EventsCard(
+    live: LiveUiState,
+    onOpenEvents: () -> Unit,
+    onOpenAlert: (Alert) -> Unit,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = CentinelaTheme.colors
     SectionCard(
+        modifier = modifier,
         title = "Eventos y Avisos",
         trailing = { TextButton(onClick = onOpenEvents) { Text("Ver todos", color = colors.textSecondary) } },
     ) {

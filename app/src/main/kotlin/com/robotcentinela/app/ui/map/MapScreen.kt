@@ -1,8 +1,10 @@
 package com.robotcentinela.app.ui.map
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,113 +54,94 @@ fun MapScreen(live: LiveUiState) {
     val plan = (live.floorPlan as? FloorPlanState.Available)?.plan
     val mission = live.mission
 
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m),
-    ) {
-        ScreenTitle("Mapa", live.robot?.let { "Robot ${it.publicCode}" })
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val isWide = maxWidth >= 760.dp
 
-        // Misión en curso | Estaciones
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
-                Text("Misión en curso", style = MaterialTheme.typography.titleSmall)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    AppIcon(R.drawable.ic_replay, size = 18.dp, tint = colors.textPrimary)
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+        ) {
+            ScreenTitle("Mapa", live.robot?.let { "Robot ${it.publicCode}" })
+
+            if (isWide) {
+                Row(
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                ) {
+                    MissionStatusCard(live, mission, Modifier.weight(1f).fillMaxHeight())
+                    StationsCard(live, mission, Modifier.weight(1f).fillMaxHeight())
+                    SensorsLegendCard(live, Modifier.weight(1f).fillMaxHeight())
+                    BatteryCard(live, Modifier.weight(1f).fillMaxHeight())
+                }
+            } else {
+                // Misión en curso | Estaciones
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    MissionStatusCard(live, mission, Modifier.weight(1f).fillMaxHeight())
+                    StationsCard(live, mission, Modifier.weight(1f).fillMaxHeight())
+                }
+
+                // Leyenda de sensores | Batería
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    SensorsLegendCard(live, Modifier.weight(1f).fillMaxHeight())
+                    BatteryCard(live, Modifier.weight(1f).fillMaxHeight())
+                }
+            }
+
+            SectionCard(title = "Mapa asistido 2D") {
+                if (live.robotMarker == null && live.trajectory.isEmpty() && plan == null) {
                     Text(
-                        mission?.name ?: if (live.missionId != null) "Misión activa" else "Sin misión",
-                        style = MaterialTheme.typography.titleMedium,
+                        "Los frames recientes no traen pose. Sin pose no hay posición: el robot nunca se dibuja en un punto supuesto.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textSecondary,
+                    )
+                } else {
+                    FloorPlanView(
+                        plan = plan,
+                        trajectory = live.trajectory,
+                        robot = live.robotMarker,
+                        layers = MapLayers(route = true, samples = true, transit = false),
+                        modifier = Modifier.fillMaxWidth().height(if (isWide) 340.dp else 260.dp),
+                        interactive = true,
+                        accessibilitySummary = mapSummary(live),
                     )
                 }
                 Text(
-                    when {
-                        mission != null -> OperationPresentation.missionStatus(mission.status).text
-                        live.missionsSupported -> "Sin datos de misión"
-                        else -> "Detalle pendiente de backend"
-                    },
+                    if (live.poseStale) "Posición del último reporte (atrasada)" else "Posición estimada - Incertidumbre visible",
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.textSecondary,
+                    modifier = Modifier.padding(top = Spacing.s),
                 )
-            }
-            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
-                Text("Estaciones", style = MaterialTheme.typography.titleSmall)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    AppIcon(R.drawable.ic_conversion_path, size = 18.dp, tint = colors.textPrimary)
-                    Text(mission?.let(OperationPresentation::stationProgress) ?: "—", style = MaterialTheme.typography.titleLarge)
+                planNote(live.floorPlan)?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
                 }
-                Text(
-                    "Última actualización: ${live.lastUpdate ?: "sin datos"}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.textSecondary,
-                )
             }
-        }
 
-        // Leyenda de sensores | Batería
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
-                ChannelPresentation.PRIMARY.forEach { key -> SensorLegendRow(key, live) }
-            }
-            SectionCard(Modifier.weight(1f).fillMaxHeight()) {
-                Text("Batería", style = MaterialTheme.typography.titleSmall)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    AppIcon(R.drawable.ic_battery_5_bar, size = 22.dp, tint = colors.graphic(StatusTone.Operational))
-                    Text(live.battery.primary ?: "—", style = MaterialTheme.typography.titleLarge)
-                }
-                Text(live.battery.secondary, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-            }
-        }
-
-        SectionCard(title = "Mapa asistido 2D") {
-            if (live.robotMarker == null && live.trajectory.isEmpty() && plan == null) {
-                Text(
-                    "Los frames recientes no traen pose. Sin pose no hay posición: el robot nunca se dibuja en un punto supuesto.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textSecondary,
-                )
-            } else {
-                FloorPlanView(
-                    plan = plan,
-                    trajectory = live.trajectory,
-                    robot = live.robotMarker,
-                    layers = MapLayers(route = true, samples = true, transit = false),
-                    modifier = Modifier.fillMaxWidth().height(260.dp),
-                    interactive = true,
-                    accessibilitySummary = mapSummary(live),
-                )
-            }
-            Text(
-                if (live.poseStale) "Posición del último reporte (atrasada)" else "Posición estimada - Incertidumbre visible",
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.textSecondary,
-                modifier = Modifier.padding(top = Spacing.s),
-            )
-            planNote(live.floorPlan)?.let {
-                Text(it, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-            }
-        }
-
-        SectionCard(title = "Habitaciones") {
-            val rooms = plan?.rooms.orEmpty()
-            if (rooms.isEmpty()) {
-                Text(
-                    "Las habitaciones vienen del plano validado del domicilio, que todavía no publica el backend.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textSecondary,
-                )
-            } else {
-                rooms.forEach { room ->
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = CentinelaShapes.minTouchTarget),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(room.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                        TextButton(
-                            onClick = { roomDetail = room },
-                            shape = CentinelaShapes.pill,
-                            colors = ButtonDefaults.textButtonColors(containerColor = colors.chrome, contentColor = colors.onChrome),
-                        ) {
-                            AppIcon(R.drawable.ic_info, size = 16.dp, tint = colors.onChrome)
-                            Text(" Ver detalles", style = MaterialTheme.typography.labelMedium)
+            SectionCard(title = "Habitaciones") {
+                val rooms = plan?.rooms.orEmpty()
+                if (rooms.isEmpty()) {
+                    Text(
+                        "Las habitaciones vienen del plano validado del domicilio, que todavía no publica el backend.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textSecondary,
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                        rooms.forEach { room ->
+                            Row(
+                                Modifier.fillMaxWidth().heightIn(min = CentinelaShapes.minTouchTarget).padding(vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(room.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                TextButton(
+                                    onClick = { roomDetail = room },
+                                    shape = CentinelaShapes.pill,
+                                    contentPadding = PaddingValues(horizontal = Spacing.m, vertical = Spacing.xs),
+                                    colors = ButtonDefaults.textButtonColors(containerColor = colors.chrome, contentColor = colors.onChrome),
+                                ) {
+                                    AppIcon(R.drawable.ic_info, size = 16.dp, tint = colors.onChrome)
+                                    Text(" Ver detalles", style = MaterialTheme.typography.labelMedium)
+                                }
+                            }
                         }
                     }
                 }
@@ -167,6 +150,76 @@ fun MapScreen(live: LiveUiState) {
     }
 
     roomDetail?.let { room -> RoomDetailSheet(room = room, onDismiss = { roomDetail = null }) }
+}
+
+@Composable
+private fun MissionStatusCard(
+    live: LiveUiState,
+    mission: com.robotcentinela.app.missions.domain.MissionSummary?,
+    modifier: Modifier = Modifier,
+) {
+    val colors = CentinelaTheme.colors
+    SectionCard(modifier = modifier) {
+        Text("Misión en curso", style = MaterialTheme.typography.titleSmall)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            AppIcon(R.drawable.ic_replay, size = 18.dp, tint = colors.textPrimary)
+            Text(
+                mission?.name ?: if (live.missionId != null) "Misión activa" else "Sin misión",
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+        Text(
+            when {
+                mission != null -> OperationPresentation.missionStatus(mission.status).text
+                live.missionsSupported -> "Sin datos de misión"
+                else -> "Detalle pendiente de backend"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textSecondary,
+        )
+    }
+}
+
+@Composable
+private fun StationsCard(
+    live: LiveUiState,
+    mission: com.robotcentinela.app.missions.domain.MissionSummary?,
+    modifier: Modifier = Modifier,
+) {
+    val colors = CentinelaTheme.colors
+    SectionCard(modifier = modifier) {
+        Text("Estaciones", style = MaterialTheme.typography.titleSmall)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            AppIcon(R.drawable.ic_conversion_path, size = 18.dp, tint = colors.textPrimary)
+            Text(mission?.let(OperationPresentation::stationProgress) ?: "—", style = MaterialTheme.typography.titleLarge)
+        }
+        Text(
+            "Última actualización: ${live.lastUpdate ?: "sin datos"}",
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textSecondary,
+        )
+    }
+}
+
+@Composable
+private fun SensorsLegendCard(live: LiveUiState, modifier: Modifier = Modifier) {
+    SectionCard(modifier = modifier) {
+        Text("Sensores", style = MaterialTheme.typography.titleSmall)
+        ChannelPresentation.PRIMARY.forEach { key -> SensorLegendRow(key, live) }
+    }
+}
+
+@Composable
+private fun BatteryCard(live: LiveUiState, modifier: Modifier = Modifier) {
+    val colors = CentinelaTheme.colors
+    SectionCard(modifier = modifier) {
+        Text("Batería", style = MaterialTheme.typography.titleSmall)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            AppIcon(R.drawable.ic_battery_5_bar, size = 22.dp, tint = colors.graphic(StatusTone.Operational))
+            Text(live.battery.primary ?: "—", style = MaterialTheme.typography.titleLarge)
+        }
+        Text(live.battery.secondary, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+    }
 }
 
 /** Fila de la leyenda de sensores del mockup: ícono y nombre del canal. */

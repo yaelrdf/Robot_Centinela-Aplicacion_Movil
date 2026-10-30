@@ -3,10 +3,12 @@ package com.robotcentinela.app.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -85,6 +88,7 @@ fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> U
             Text("Cuenta y Sesión", style = MaterialTheme.typography.titleSmall)
             val sessionState by deps.container.authPort.sessionState.collectAsStateWithLifecycle()
             val userId = (sessionState as? com.robotcentinela.app.identity.domain.SessionState.Authenticated)?.userId?.value
+            val savedEmail = deps.preferences.lastEmail.trim()
             if (userId != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -93,7 +97,10 @@ fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> U
                 ) {
                     AppIcon(R.drawable.ic_person, tint = colors.textSecondary)
                     Column(Modifier.weight(1f)) {
-                        Text("Usuario autenticado", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            if (savedEmail.isNotEmpty()) savedEmail else "Usuario autenticado",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                         Text(
                             "ID: ${userId.take(8)}...${userId.takeLast(4)}",
                             style = MaterialTheme.typography.labelSmall,
@@ -134,8 +141,9 @@ private fun RadioRow(label: String, selected: Boolean, onSelect: () -> Unit, des
         Modifier
             .fillMaxWidth()
             .heightIn(min = CentinelaShapes.minTouchTarget)
+            .clip(CentinelaShapes.control)
             .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton)
-            .padding(vertical = Spacing.xs),
+            .padding(horizontal = Spacing.s, vertical = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {

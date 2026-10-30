@@ -1,23 +1,37 @@
 package com.robotcentinela.app.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -55,10 +69,17 @@ fun channelIcon(channelKey: ChannelKey): Int? = when (channelKey.value) {
 fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val colors = CentinelaTheme.colors
     val critical = model.status.tone == StatusTone.Critical
+    val targetBorderColor = when {
+        critical -> colors.critical
+        model.stale -> colors.warning
+        else -> colors.border
+    }
+    val borderColor by animateColorAsState(targetBorderColor, tween(250), label = "metricBorder")
+
     Surface(
         onClick = onOpen,
         modifier = modifier
-            .heightIn(min = 132.dp)
+            .heightIn(min = 144.dp)
             .clearAndSetSemantics {
                 contentDescription = model.accessibilityText
                 role = Role.Button
@@ -69,34 +90,63 @@ fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = 
         contentColor = colors.textPrimary,
         border = BorderStroke(
             if (critical || model.stale) CentinelaShapes.focusWidth else CentinelaShapes.borderWidth,
-            when {
-                critical -> colors.critical
-                model.stale -> colors.warning
-                else -> colors.border
-            },
+            borderColor,
         ),
     ) {
-        Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text(model.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                channelIcon(model.channelKey)?.let { AppIcon(it, size = 18.dp, tint = if (critical) colors.critical else colors.textPrimary) }
+        Column(
+            Modifier.padding(Spacing.l),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    model.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                channelIcon(model.channelKey)?.let { iconId ->
+                    Box(
+                        Modifier
+                            .size(30.dp)
+                            .clip(CentinelaShapes.pill)
+                            .background(if (critical) colors.critical.copy(alpha = 0.15f) else colors.statusNeutral.copy(alpha = 0.45f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AppIcon(iconId, size = 18.dp, tint = if (critical) colors.critical else colors.textPrimary)
+                    }
+                }
             }
+            Spacer(Modifier.height(Spacing.xs))
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text(model.value ?: "—", style = CentinelaText.metricValue, maxLines = 1)
+                AnimatedContent(
+                    targetState = model.value ?: "—",
+                    transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
+                    label = "metricValue",
+                ) { displayValue ->
+                    Text(displayValue, style = CentinelaText.metricValue, maxLines = 1)
+                }
                 model.unit?.let {
                     Text(it, style = CentinelaText.metricUnit, color = colors.textSecondary, modifier = Modifier.padding(bottom = 6.dp))
                 }
             }
-            Text(
-                when {
-                    model.stale -> "Atrasado: última lectura ${model.capturedAt ?: "sin hora"}"
-                    model.age != null -> "Última lectura: ${model.age}"
-                    else -> "Última lectura: ----"
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = if (model.stale) colors.textPrimary else colors.textSecondary,
-            )
-            StatusBadge(model.status, modifier = Modifier.padding(top = 2.dp))
+            Spacer(Modifier.height(Spacing.xs))
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                Text(
+                    when {
+                        model.stale -> "Atrasado: última lectura ${model.capturedAt ?: "sin hora"}"
+                        model.age != null -> "Última lectura: ${model.age}"
+                        else -> "Última lectura: ----"
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (model.stale) colors.textPrimary else colors.textSecondary,
+                )
+                StatusBadge(model.status)
+            }
         }
     }
 }
@@ -157,10 +207,21 @@ fun OperationCard(
     modifier: Modifier = Modifier,
 ) {
     val colors = CentinelaTheme.colors
-    SectionCard(modifier = modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            Text("Operación", style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })
-            Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+    SectionCard(modifier = modifier, title = "Operación") {
+        Row(
+            Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+        ) {
+            Column(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(CentinelaShapes.control)
+                    .background(colors.statusNeutral.copy(alpha = 0.35f))
+                    .padding(Spacing.m)
+                    .semantics(mergeDescendants = true) {},
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
                 Text("Batería", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     AppIcon(R.drawable.ic_battery_5_bar, size = 20.dp, tint = colors.graphic(StatusTone.Operational))
@@ -168,7 +229,16 @@ fun OperationCard(
                 }
                 Text(battery.secondary, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
             }
-            Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+            Column(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(CentinelaShapes.control)
+                    .background(colors.statusNeutral.copy(alpha = 0.35f))
+                    .padding(Spacing.m)
+                    .semantics(mergeDescendants = true) {},
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
                 Text("Estaciones", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     AppIcon(R.drawable.ic_conversion_path, size = 20.dp, tint = colors.textPrimary)

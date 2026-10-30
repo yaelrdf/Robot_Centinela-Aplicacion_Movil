@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.robotcentinela.app.identity.application.RecoverAccess
 import com.robotcentinela.app.identity.application.SignIn
 import com.robotcentinela.app.shell.DevAccount
+import com.robotcentinela.app.ui.app.UiPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,12 +35,13 @@ data class LoginUiState(
 class LoginViewModel(
     private val signInUseCase: SignIn,
     private val recoverAccessUseCase: RecoverAccess,
+    private val preferences: UiPreferences? = null,
     private val devAccount: DevAccount? = DevAccount.fromBuildConfig(),
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(
         LoginUiState(
-            email = devAccount?.email.orEmpty(),
+            email = preferences?.lastEmail?.takeIf { it.isNotBlank() } ?: devAccount?.email.orEmpty(),
             showDevAccountButton = devAccount != null,
         ),
     )
@@ -110,6 +112,7 @@ class LoginViewModel(
         viewModelScope.launch {
             try {
                 signInUseCase(email, password)
+                preferences?.lastEmail = email
                 // El cambio de estado de sesión en AuthPort actualizará automáticamente la raíz de la app
             } catch (e: CancellationException) {
                 throw e
