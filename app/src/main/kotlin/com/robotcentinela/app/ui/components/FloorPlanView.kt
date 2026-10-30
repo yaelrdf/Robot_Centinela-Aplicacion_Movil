@@ -108,6 +108,10 @@ fun FloorPlanView(
     var pan by remember { mutableStateOf(Offset.Zero) }
     var canvasSize by remember { mutableStateOf(Size.Zero) }
 
+    // Reutilización de paths para optimizar memoria en recomposiciones continuas
+    val reusableRoutePath = remember { Path() }
+    val reusableDiamondPath = remember { Path() }
+
     // Límites del dibujo: el plano o, sin plano, la trayectoria con margen.
     val bounds = remember(plan, trajectory.size, robot == null) {
         if (plan != null) {
@@ -187,19 +191,19 @@ fun FloorPlanView(
 
             // Ruta recorrida.
             if (layers.route && trajectory.size > 1) {
-                val path = Path()
+                reusableRoutePath.reset()
                 trajectory.forEachIndexed { i, pt ->
                     val o = t.point(pt.xM, pt.yM)
-                    if (i == 0) path.moveTo(o.x, o.y) else path.lineTo(o.x, o.y)
+                    if (i == 0) reusableRoutePath.moveTo(o.x, o.y) else reusableRoutePath.lineTo(o.x, o.y)
                 }
-                drawPath(path, colors.textSecondary, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+                drawPath(reusableRoutePath, colors.textSecondary, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
             }
 
             // Muestras de señal relativa: rombos (no se confunden con el marcador de posición, §12.5).
             if (layers.samples && signalMin != null && signalMax != null) {
                 trajectory.filter { it.signal != null && (it.sampling || layers.transit) }.forEach { pt ->
                     val f = if (signalMax > signalMin) ((pt.signal!! - signalMin) / (signalMax - signalMin)).toFloat() else 0.5f
-                    drawDiamond(t.point(pt.xM, pt.yM), 5.dp.toPx(), colors.secondary.copy(alpha = 0.25f + 0.75f * f), colors.textPrimary)
+                    drawDiamond(t.point(pt.xM, pt.yM), 5.dp.toPx(), colors.secondary.copy(alpha = 0.25f + 0.75f * f), colors.textPrimary, reusableDiamondPath)
                 }
             }
 
@@ -312,7 +316,7 @@ fun MapLegend(showSamples: Boolean, modifier: Modifier = Modifier) {
             drawRect(colors.primary, Offset(size.width * 0.2f, size.height * 0.2f), Size(size.width * 0.6f, size.height * 0.6f), style = Stroke(4f))
         }
         if (showSamples) {
-            LegendItem("Muestra") { c -> drawDiamond(c, size.minDimension / 2.6f, colors.secondary, colors.textPrimary) }
+            LegendItem("Muestra") { c -> drawDiamond(c, size.minDimension / 2.6f, colors.secondary, colors.textPrimary, null) }
         }
         LegendItem("Sin explorar") { _ ->
             var x = -size.height
@@ -333,8 +337,9 @@ private fun LegendItem(label: String, swatch: DrawScope.(center: Offset) -> Unit
     }
 }
 
-private fun DrawScope.drawDiamond(center: Offset, half: Float, fill: Color, outline: Color) {
-    val path = Path().apply {
+private fun DrawScope.drawDiamond(center: Offset, half: Float, fill: Color, outline: Color, reusablePath: Path? = null) {
+    val path = (reusablePath ?: Path()).apply {
+        reset()
         moveTo(center.x, center.y - half)
         lineTo(center.x + half, center.y)
         lineTo(center.x, center.y + half)

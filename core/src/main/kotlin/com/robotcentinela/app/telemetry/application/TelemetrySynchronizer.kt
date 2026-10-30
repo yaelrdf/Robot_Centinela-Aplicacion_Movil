@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -77,7 +78,8 @@ class TelemetrySynchronizer(
     private suspend fun run(): Unit = coroutineScope {
         setStatus(if (state.value.lastAppliedVersion == null) SyncStatus.Connecting else SyncStatus.Reconciling)
 
-        val notices = Channel<TelemetryNotice>(Channel.UNLIMITED)
+        // Buffer acotado con descarte del aviso más antiguo para evitar crecimiento ilimitado de memoria.
+        val notices = Channel<TelemetryNotice>(capacity = 64, onBufferOverflow = BufferOverflow.DROP_OLDEST)
         launch {
             while (true) {
                 notifier.notices(robotId)
