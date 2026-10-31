@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * autenticada. No concede permisos: lo que se puede leer lo decide RLS en el servidor.
  *
  * Es temporal: depende de que backend siga permitiendo la lectura anónima (docs/pendientes.md, B19) y
- * se retira cuando exista el inicio de sesión (docs/decisions/ADR-006-demo-lectura-publica.md).
+ * se retira cuando exista el inicio de sesión (docs/decisions/ADR-007-demo-lectura-publica.md).
  */
 class PublicReadAuthAdapter : AuthPort {
 

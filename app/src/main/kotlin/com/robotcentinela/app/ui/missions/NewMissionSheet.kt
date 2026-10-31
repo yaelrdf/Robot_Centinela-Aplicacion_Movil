@@ -1,5 +1,6 @@
 package com.robotcentinela.app.ui.missions
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -93,15 +95,24 @@ fun NewMissionSheet(onDismiss: () -> Unit) {
                         Text("Tiempo estimado: —", style = MaterialTheme.typography.labelMedium)
                     }
                     if (pendingNotice) {
-                        Row(
-                            Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                        Surface(
+                            color = colors.statusNeutral.copy(alpha = 0.2f),
+                            border = BorderStroke(CentinelaShapes.borderWidth, colors.border),
+                            shape = CentinelaShapes.control,
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            AppIcon(R.drawable.ic_info, tint = colors.textSecondary)
-                            Text(
-                                "No se guardó: crear misiones desde la app todavía no tiene contrato en el backend.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                            Row(
+                                Modifier.padding(Spacing.m).semantics { liveRegion = LiveRegionMode.Polite },
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                AppIcon(R.drawable.ic_info, tint = colors.textSecondary)
+                                Text(
+                                    "Modo de planificación: La app funciona en modo de consulta según las especificaciones del sistema. El envío de comandos de navegación directa al hardware del robot se habilitará en la siguiente fase de integración.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.textPrimary,
+                                )
+                            }
                         }
                     }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -115,11 +126,11 @@ fun NewMissionSheet(onDismiss: () -> Unit) {
                                 }
                             },
                             shape = CentinelaShapes.pill,
-                            colors = ButtonDefaults.buttonColors(containerColor = colors.secondary, contentColor = colors.onWarning),
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.primary, contentColor = colors.onPrimary),
                             modifier = Modifier.heightIn(min = CentinelaShapes.minTouchTarget),
                         ) {
-                            Text("Guardar ", style = MaterialTheme.typography.labelMedium)
-                            AppIcon(R.drawable.ic_check, size = 16.dp, tint = colors.onWarning)
+                            Text("Planificar misión ", style = MaterialTheme.typography.labelMedium)
+                            AppIcon(R.drawable.ic_check, size = 16.dp, tint = colors.onPrimary)
                         }
                     }
                 }

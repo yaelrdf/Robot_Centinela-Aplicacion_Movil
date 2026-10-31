@@ -10,18 +10,19 @@ persistió. **No controla el robot**: el inicio, la pausa y la parada son locale
 autoridad de seguridad (expediente §1, §7.1). Tampoco calcula alertas: **la lógica de alertas, los
 umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 
-> **Estado:** beta de demostración (0.3.0-beta). La interfaz es una **propuesta** sobre la guía de
-> diseño de Ingeniería de Software. Varios contratos de datos son **provisionales** hasta que backend
-> publique el esquema final de Supabase (ver [docs/pendientes.md](docs/pendientes.md)). La app se conecta
-> solo al backend real (Supabase); el inicio de sesión se integra al final, por indicación del equipo.
-> Mientras tanto existe un build **`demo`** que lee con la clave pública, sin sesión
-> ([ADR-006](docs/decisions/ADR-006-demo-lectura-publica.md)).
+> **Estado:** beta (0.4.0-beta). La app se conecta solo al backend real (Supabase): telemetría, incidentes,
+> misiones y autenticación con Supabase Auth (pantalla de inicio de sesión, recuperación de acceso y cierre
+> de sesión). Los contratos que el servidor aún no publica (archivo del mapa, metadatos de misiones,
+> calibraciones) se muestran como **pendiente de backend** y no se inventan; varios contratos de datos son
+> **provisionales** (ver [docs/pendientes.md](docs/pendientes.md)). Con el RLS actual del proyecto, una cuenta
+> sin membresía activa no ve datos: mientras no exista un usuario de pruebas (B21) existe un build **`demo`**
+> que lee con la clave pública, sin sesión ([ADR-007](docs/decisions/ADR-007-demo-lectura-publica.md)).
 
 ## Alcance de esta versión
 
 | Incluido | Historias |
 |---|---|
-| Inicio y cierre de sesión con Supabase Auth, y selección explícita del domicilio | HU01 |
+| Inicio y cierre de sesión con Supabase Auth, recuperación de acceso y selección explícita del domicilio | HU01, RF01, RF02 |
 | Semántica de lecturas: señal cruda sin calibrar (nunca ppm), "No instalado", "Sin dato" (nunca 0), calentando, fallo, fuera de rango | HU02, HU20 |
 | Sincronización en vivo por `stream_version`: snapshot, deltas, reconexión y reconciliación | HU03 |
 | Edad del dato por canal y paso a "atrasado" | HU04 |
@@ -29,8 +30,8 @@ umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 | Batería con método ("Porcentaje no disponible" si solo hay voltaje) | HU08 |
 | Pose con incertidumbre e IDs de mapa y misión (sin geometría de mapa) | HU05, HU06 (parcial) |
 | Fixtures sintéticos de prueba | HU15 (parcial) |
-| Interfaz Compose según los mockups móviles: Resumen, Mapa, Misiones e Historial (Eventos desde la campana), con tema claro/oscuro | HU02 a HU08, HU12, HU20 |
-| Plano por versión de mapa y resumen de misión: contratos **provisionales** en `:core`, sin adaptador todavía (la interfaz muestra "pendiente de backend") | HU05, HU06, HU08 |
+| Interfaz Compose según los mockups móviles: Pantalla de Login, Resumen, Mapa, Misiones, Historial, Eventos y Ajustes con tema claro/oscuro y Poppins | HU01 a HU08, HU12, HU20 |
+| Plano por versión de mapa y resumen de misión: contratos provisionales en `:core`, la interfaz muestra estado informativo en ausencia de archivo | HU05, HU06, HU08 |
 
 **Fuera de esta versión:** las calibraciones
 detalladas, la exportación CSV, push, video y comandos. La trazabilidad completa está en
@@ -134,7 +135,7 @@ El build `demo` sirve para mostrar la app con datos reales **sin pantalla de ini
   superior), pero no sirve para publicar en una tienda.
 - **Depende de que backend siga permitiendo la lectura anónima (B19).** Si se cierra, el APK deja de
   mostrar datos. Es una solución temporal; ver
-  [ADR-006](docs/decisions/ADR-006-demo-lectura-publica.md) y
+  [ADR-007](docs/decisions/ADR-007-demo-lectura-publica.md) y
   [las notas de versión](docs/releases/v0.3.0-beta-demo.md).
 - Con los datos actuales del proyecto (2 frames, del 23 de octubre de 2026) los canales aparecen como
   "atrasados"; alertas y misiones llegan vacías y el mapa sigue "pendiente de backend".

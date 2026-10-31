@@ -19,6 +19,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -47,8 +48,9 @@ fun AlertRow(alert: Alert, zone: ZoneId, today: LocalDate, onClick: () -> Unit, 
         modifier
             .fillMaxWidth()
             .heightIn(min = CentinelaShapes.minTouchTarget)
+            .clip(CentinelaShapes.control)
             .clickable(onClickLabel = "Ver detalle del evento", role = Role.Button, onClick = onClick)
-            .padding(vertical = Spacing.s),
+            .padding(horizontal = Spacing.s, vertical = Spacing.s),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
@@ -105,8 +107,7 @@ fun AlertDetailSheet(alert: Alert, zone: ZoneId, today: LocalDate, onDismiss: ()
             HorizontalDivider(color = colors.border)
             Text("Evidencia", style = MaterialTheme.typography.titleSmall)
             Text(
-                "Las ocurrencias y la evidencia registrada de cada evento se mostrarán cuando backend publique su " +
-                    "contrato (pendiente B7).",
+                "Las capturas de evidencia y el registro de ocurrencias detalladas se desplegarán al estar vinculadas al servidor.",
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.textSecondary,
             )

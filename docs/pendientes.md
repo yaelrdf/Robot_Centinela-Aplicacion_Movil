@@ -28,9 +28,9 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 | B16 | `missions` no tiene nombre, propósito, estaciones ni energía (mockups y HU06, HU08) | Se muestran como "pendiente", nunca como cero | `SupabaseMissionQueryAdapter.kt` |
 | B17 | `firmware_version` está en `devices`, no por frame | Se muestra el firmware actual del dispositivo | `NormalizedFrameAssembler.kt` |
 | B18 | La vista `telemetry_frames_v1` del equipo se salta el RLS (falta `security_invoker = true`) y no trae `schema_version`, `device_id` ni `boot_id` | Corrección probada en `docs/backend/propuesta-vista-telemetry-frames-v1.sql`. La app no usa la vista: lee las tablas | `SupabaseTelemetryQueryAdapter.kt` |
-| B19 | En el proyecto de Supabase (revisado el 23 de octubre de 2026), **sin iniciar sesión** y solo con la clave pública se leen `homes`, `robots`, `devices`, `channels`, `map_versions`, `telemetry_frames`, `sensor_readings`, `frame_poses`, `robot_states` y `battery_readings`. Cualquiera con la app (la clave pública va dentro del APK) puede leer la telemetría. **Revisado de nuevo el 29 de octubre de 2026: sigue abierto** (10 tablas legibles sin sesión). La demo beta depende de esto ([ADR-006](decisions/ADR-006-demo-lectura-publica.md)) | Aplicar `docs/backend/propuesta-politicas-lectura.sql` y quitar las políticas o permisos que dejan leer al rol `anon` | — |
+| B19 | En el proyecto de Supabase (revisado el 23 de octubre de 2026), **sin iniciar sesión** y solo con la clave pública se leen `homes`, `robots`, `devices`, `channels`, `map_versions`, `telemetry_frames`, `sensor_readings`, `frame_poses`, `robot_states` y `battery_readings`. Cualquiera con la app (la clave pública va dentro del APK) puede leer la telemetría. **Revisado de nuevo el 29 de octubre de 2026: sigue abierto** (10 tablas legibles sin sesión). La demo beta depende de esto ([ADR-007](decisions/ADR-007-demo-lectura-publica.md)) | Aplicar `docs/backend/propuesta-politicas-lectura.sql` y quitar las políticas o permisos que dejan leer al rol `anon` | — |
 | B20 | `device_sessions` no se puede leer, así que la app no obtiene `boot_id` y rechaza los frames | Las políticas propuestas incluyen lectura de `device_sessions` por membresía. El build `demo` lo rodea leyendo `raw_payload`, solo cuando `device_sessions` no es visible | `NormalizedFrameAssembler.kt` |
-| B21 | Falta un usuario de prueba con membresía activa en "Casa Demo Centinela" (`memberships` está vacía para la app) | Sin él la app se queda en "Sin sesión". El build `demo` no lo necesita (ADR-006) | `DevAccount.kt` |
+| B21 | Falta un usuario de prueba con membresía activa en "Casa Demo Centinela" (`memberships` está vacía para la app) | Sin él la app se queda en "Sin sesión". El build `demo` no lo necesita (ADR-007) | `DevAccount.kt` |
 | B22 | La tabla `alert_occurrences` (RF16) y la vista `telemetry_frames_v1` devuelven 404 en el proyecto real (revisado el 29 de octubre) | La app no usa ninguna de las dos | `incidents/` |
 | B23 | Con la clave pública, `memberships`, `device_sessions`, `missions` y `alerts` devuelven 0 filas: no se distingue entre RLS y tablas vacías. Solo hay 2 frames (el último del 23 de octubre de 2026) | La demo muestra los canales como "atrasados" y los estados vacíos de alertas y misiones. Hace falta que ingesta publique frames nuevos | — |
 
@@ -38,7 +38,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 
 | # | Pregunta | Supuesto actual |
 |---|---|---|
-| R1 | Método de autenticación de Supabase Auth | Correo y contraseña, porque RF01 pide "recuperar acceso". Mientras no exista la pantalla de login (va al final), los builds debug entran con una cuenta de prueba de `local.properties` (`DevAccount.kt`) |
+| R1 | Método de autenticación de Supabase Auth | **Resuelto:** Autenticación por correo y contraseña implementada con `LoginScreen`, `SignIn`, `SignOut` y `RecoverAccess`. Las compilaciones debug conservan botón para autocompletar la cuenta de prueba de `local.properties` (`DevAccount.kt`). | `LoginScreen.kt`, `LoginViewModel.kt`, `RootViewModel.kt` |
 | R2 | Valores de `memberships.role` | Se conserva el texto; la app no autoriza por rol |
 | R3 | Dispositivos objetivo (versión mínima de Android) | `minSdk` 29 (Android 10), definido por el equipo |
 | R4 | Validar la interfaz (docs/ui/interfaz-movil.md) contra los mockups móviles | Implementada según `Diseño de Interfaz móvil.pdf` |
@@ -51,7 +51,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 | R10 | Las gráficas del mockup apilan Gas LP (ADC), metano (ADC), temperatura (°C) y humedad (%) en un mismo eje | Se grafica un canal a la vez, con su unidad (§12.5, RNF12) |
 | R11 | Lecturas "por habitación" del mockup | Requieren que el backend asigne lecturas con el plano validado (RB11); la app no lo hace |
 | R12 | Logo de la app | Sin ícono propio hasta que el equipo lo defina |
-| R13 | Pantalla de inicio de sesión (RF01, HU01) | Pendiente por indicación del equipo. Al existir, se retira el build `demo` y sus adaptadores `PublicRead*` (ADR-006) |
+| R13 | Pantalla de inicio de sesión (RF01, HU01) | Pendiente por indicación del equipo. Al existir, se retira el build `demo` y sus adaptadores `PublicRead*` (ADR-007) |
 
 ## Para IoT / firmware
 

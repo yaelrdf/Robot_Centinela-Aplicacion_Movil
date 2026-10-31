@@ -90,6 +90,6 @@ Conclusiones:
 - `telemetry_frames` del proyecto real tiene las columnas `schema_version` y `raw_payload` (el frame
   original), que el esquema compartido del 21 de octubre no traía.
 - Sin `device_sessions` visible no se obtiene `boot_id`; la demo lo toma de `raw_payload`
-  ([ADR-006](../decisions/ADR-006-demo-lectura-publica.md)).
+  ([ADR-007](../decisions/ADR-007-demo-lectura-publica.md)).
 - Pendiente de comprobar con un usuario real: que la membresía y las políticas de lectura (B12, B20,
   B21) funcionan. Hoy no existe ese usuario.

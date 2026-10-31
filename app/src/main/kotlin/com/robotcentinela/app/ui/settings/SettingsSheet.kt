@@ -3,10 +3,12 @@ package com.robotcentinela.app.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -22,8 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -36,14 +40,16 @@ import com.robotcentinela.app.ui.theme.CentinelaShapes
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 import com.robotcentinela.app.ui.theme.ThemePreference
+import kotlinx.coroutines.launch
 
-/** Ajustes: tema y domicilio. El cierre de sesión se agrega junto con el login. */
+/** Ajustes: tema, domicilio y cierre de sesión (HU01). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> Unit) {
     val deps = uiDependencies
     val colors = CentinelaTheme.colors
     val theme by deps.preferences.theme.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -79,6 +85,46 @@ fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> U
             }
 
             HorizontalDivider(color = colors.border)
+            Text("Cuenta y Sesión", style = MaterialTheme.typography.titleSmall)
+            val sessionState by deps.container.authPort.sessionState.collectAsStateWithLifecycle()
+            val userId = (sessionState as? com.robotcentinela.app.identity.domain.SessionState.Authenticated)?.userId?.value
+            val savedEmail = deps.preferences.lastEmail.trim()
+            if (userId != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                    modifier = Modifier.padding(vertical = Spacing.xs),
+                ) {
+                    AppIcon(R.drawable.ic_person, tint = colors.textSecondary)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (savedEmail.isNotEmpty()) savedEmail else "Usuario autenticado",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            "ID: ${userId.take(8)}...${userId.takeLast(4)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textSecondary,
+                        )
+                    }
+                }
+            }
+            OutlinedButton(
+                onClick = {
+                    onDismiss()
+                    scope.launch { deps.container.signOut() }
+                },
+                shape = CentinelaShapes.control,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = CentinelaShapes.minTouchTarget),
+            ) {
+                AppIcon(R.drawable.ic_logout, tint = colors.critical)
+                Spacer(Modifier.size(Spacing.s))
+                Text("Cerrar sesión", color = colors.critical)
+            }
+
+            HorizontalDivider(color = colors.border)
             Text(
                 "Robot Centinela ${BuildConfig.VERSION_NAME}. Esta app es de consulta: no envía comandos al robot.",
                 style = MaterialTheme.typography.labelSmall,
@@ -95,8 +141,9 @@ private fun RadioRow(label: String, selected: Boolean, onSelect: () -> Unit, des
         Modifier
             .fillMaxWidth()
             .heightIn(min = CentinelaShapes.minTouchTarget)
+            .clip(CentinelaShapes.control)
             .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton)
-            .padding(vertical = Spacing.xs),
+            .padding(horizontal = Spacing.s, vertical = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {

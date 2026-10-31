@@ -56,7 +56,7 @@ android {
             buildConfigField("String", "DEV_EMAIL", "\"\"")
             buildConfigField("String", "DEV_PASSWORD", "\"\"")
         }
-        // Demostración beta (ADR-006): lee de Supabase como el rol `anon`, sin pantalla de login ni cuenta
+        // Demostración beta (ADR-007): lee de Supabase como el rol `anon`, sin pantalla de login ni cuenta
         // embebida. Se firma con la clave de depuración de Android: sirve para instalar, no para publicar.
         create("demo") {
             initWith(getByName("release"))

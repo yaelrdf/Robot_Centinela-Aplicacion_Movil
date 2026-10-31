@@ -1,4 +1,4 @@
-# ADR-006: Demostración beta con lectura pública (sin inicio de sesión)
+# ADR-007: Demostración beta con lectura pública (sin inicio de sesión)
 
 - **Estado:** aceptada, **temporal**
 - **Fecha:** 2026-10-29

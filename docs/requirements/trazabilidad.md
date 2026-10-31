@@ -13,7 +13,7 @@
 
 | HU | Nombre | Prioridad | RF / RB | Código (paquete o clase) | Pruebas | Estado |
 |---|---|---|---|---|---|---|
-| HU01 | Acceso y consulta | Máxima | RF01, RF02, RF32 | `identity` (`SignIn`, `SignOut`, `SelectHomeScope`, `CurrentHomeScope`); `SupabaseAuthAdapter`, `SupabaseHomeScopeAdapter` | `HomeScopeUseCasesTest` | ✅ La autorización real es RLS del servidor (RNF09) |
+| HU01 | Acceso y consulta | Máxima | RF01, RF02, RF32 | `identity` (`SignIn`, `SignOut`, `SelectHomeScope`, `CurrentHomeScope`); `SupabaseAuthAdapter`, `SupabaseHomeScopeAdapter`; `LoginScreen`, `LoginViewModel` | `HomeScopeUseCasesTest` | ✅ Implementado con Supabase Auth y sesión reactiva. La autorización real es RLS del servidor (RNF09) |
 | HU02 | Señales de gas y calidad | Máxima | RF05, RF06, RF20; RB04 a RB06 | `ReadingInterpreter`, `ReadingQuality`, `DescribeChannelStatus` | `ReadingInterpretationTest`, `DescribeChannelStatusTest`, `TelemetryFrameMapperTest` | 🟡 Semántica completa. La unidad depende del catálogo de capacidades (pendiente) |
 | HU03 | Consistencia web y móvil | Máxima | RF07, RF08, RF09; RB26 a RB28 | `TelemetrySynchronizer`, `SupabaseTelemetryQueryAdapter`, `SupabaseTelemetryChangeNotifier` | `TelemetrySynchronizerTest` | ✅ Los SLO de RNF02 se miden con la UI |
 | HU04 | Edad del dato | Máxima | RF09, RF23; RB19 | `FreshnessPolicy`, `LatestTelemetryProjection`, `DescribeChannelStatus` | `FreshnessPolicyTest`, `LatestTelemetryProjectionTest` | ✅ |
@@ -24,7 +24,7 @@
 | HU09 | Validación de calibraciones | Máxima | RF20, RF24, RF34; RB07 | `CalibrationId` en cada lectura | `TelemetryFrameMapperTest` | ⏳ Los detalles de calibración (fecha, responsable, vigencia) esperan su contrato |
 | HU10 | Confirmación MQTT / IoT | Máxima | RF03, RF04, RF30; RB02, RB03 | — | — | ➖ Firmware y puente de ingesta |
 | HU11 | Correlación de reportes | Máxima | RF15, RF29; RB21 a RB24 | `Alert` (solo lectura), `SupabaseAlertQueryAdapter` | `QueryAlertHistoryTest` | ➖ La correlación, la histéresis y los umbrales viven en la base de datos. La app solo lee incidentes |
-| HU12 | Preferencias visuales UI | Máxima | RF22, RF23 | `ui/theme` (tokens claro/oscuro, `ThemePreference`), `SettingsSheet` | — | 🟡 Propuesta implementada; falta validación con el equipo de diseño |
+| HU12 | Preferencias visuales UI | Máxima | RF22, RF23 | `ui/theme` (tokens claro/oscuro, `ThemePreference`, `CentinelaShapes`), `SettingsSheet`, `LoginScreen` | `PresentationTest` | ✅ Paletas claro/oscuro, cambio suave de tema, Poppins tabular y adaptabilidad móvil/tablet |
 | HU13 | Exportación de reportes | Media | RF21 | — | — | ⏳ Prioridad Should; el formato del CSV y su origen no están definidos |
 | HU14 | Auditoría técnica | Máxima | RF24, RF25 | — | — | ➖ Herramientas técnicas separadas (RF24); los dashboards de consulta no editan |
 | HU15 | Simulación de datos QA | Máxima | RF35; RB29 | Fixtures sintéticos en `app/src/test/resources/fixtures/telemetry/`; `TestFrames` | `TelemetryFrameMapperTest`, `TelemetrySynchronizerTest` | 🟡 Cubre nulls, calidades, duplicados y desconexiones. El emisor MQTT de prueba es de QA y backend |
@@ -90,4 +90,4 @@ Pruebas de la interfaz: `PresentationTest` (reglas de presentación) y `Provisio
 | Lectura de telemetría, canales, alertas y misiones con el esquema del equipo | ✅ Adaptadores implementados y probados (`NormalizedFrameAssemblerTest`) |
 | Contra el proyecto real con la clave pública | 🟡 Verificada la lectura de `homes`, `robots`, `channels` y `telemetry_frames`. Alertas y misiones llegan vacías |
 | Contra el proyecto real con un usuario con membresía (HU01, RF02) | ⏳ No verificada: no existe el usuario de pruebas (B21) |
-| Demostración sin inicio de sesión (build `demo`) | ✅ Implementada, **temporal** y atada a B19 ([ADR-006](../decisions/ADR-006-demo-lectura-publica.md)). Pruebas: `PublicReadAuthAdapterTest`, `NormalizedFrameAssemblerTest` |
+| Demostración sin inicio de sesión (build `demo`) | ✅ Implementada, **temporal** y atada a B19 ([ADR-007](../decisions/ADR-007-demo-lectura-publica.md)). Pruebas: `PublicReadAuthAdapterTest`, `NormalizedFrameAssemblerTest` |

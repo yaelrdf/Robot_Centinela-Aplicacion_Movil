@@ -1,5 +1,10 @@
 package com.robotcentinela.app.ui.app
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,8 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.robotcentinela.app.R
 import com.robotcentinela.app.shell.AppContainer
+import com.robotcentinela.app.ui.auth.LoginScreen
 import com.robotcentinela.app.ui.components.AppIcon
-import com.robotcentinela.app.ui.components.ErrorState
 import com.robotcentinela.app.ui.homes.HomeSelectionScreen
 import com.robotcentinela.app.ui.main.MainScreen
 import com.robotcentinela.app.ui.theme.CentinelaTheme
@@ -47,11 +52,18 @@ private fun AppContent(container: AppContainer, preferences: UiPreferences) {
     CompositionLocalProvider(LocalUiDependencies provides dependencies) {
         val root: RootViewModel = viewModel { RootViewModel(container) }
         val state by root.state.collectAsStateWithLifecycle()
-        when (val s = state) {
-            RootState.Connecting -> Connecting()
-            is RootState.NeedsSession -> SessionProblem(s.message, onRetry = root::retrySession)
-            RootState.ChoosingHome -> HomeSelectionScreen(onChosen = root::homeChosen)
-            is RootState.Ready -> MainScreen(scope = s.scope, onChangeHome = root::changeHome)
+        AnimatedContent(
+            targetState = state,
+            contentKey = { it::class },
+            transitionSpec = { fadeIn(tween(240)) togetherWith fadeOut(tween(180)) },
+            label = "rootTransition",
+        ) { s ->
+            when (s) {
+                RootState.Connecting -> Connecting()
+                RootState.NeedsLogin -> LoginScreen()
+                RootState.ChoosingHome -> HomeSelectionScreen(onChosen = root::homeChosen)
+                is RootState.Ready -> MainScreen(scope = s.scope, onChangeHome = root::changeHome)
+            }
         }
     }
 }
@@ -67,19 +79,6 @@ private fun Connecting() {
     ) {
         CircularProgressIndicator(color = colors.primary)
         Text("Conectando con el servidor…", style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
-    }
-}
-
-/** Sin sesión: explica la causa y permite reintentar. */
-@Composable
-private fun SessionProblem(message: String, onRetry: () -> Unit) {
-    val colors = CentinelaTheme.colors
-    Column(
-        Modifier.fillMaxSize().background(colors.background).safeDrawingPadding().padding(Spacing.l),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text("Sin sesión", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary, modifier = Modifier.padding(horizontal = Spacing.l))
-        ErrorState(message = message, onRetry = onRetry)
     }
 }
 

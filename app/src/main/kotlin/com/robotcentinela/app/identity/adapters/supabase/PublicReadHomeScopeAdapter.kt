@@ -19,7 +19,7 @@ import io.github.jan.supabase.postgrest.query.Columns as PostgrestColumns
  * `anon` y les asigna una membresía sintética de solo lectura. No amplía permisos: si backend cierra
  * la lectura anónima, la lista llega vacía. Los robots se consultan igual que en el flujo normal.
  *
- * Es temporal (docs/pendientes.md, B19; docs/decisions/ADR-006-demo-lectura-publica.md).
+ * Es temporal (docs/pendientes.md, B19; docs/decisions/ADR-007-demo-lectura-publica.md).
  */
 class PublicReadHomeScopeAdapter(private val supabase: SupabaseClient) : HomeScopePort {
 

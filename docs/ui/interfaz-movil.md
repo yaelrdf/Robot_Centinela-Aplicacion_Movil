@@ -21,6 +21,7 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
 
 | Pantalla | Qué muestra | Origen de los datos |
 |---|---|---|
+| Iniciar sesión | Entrada con correo y contraseña, recuperación de acceso y soporte de cuenta de prueba | Supabase Auth (`SignIn`, `RecoverAccess`) |
 | Elegir domicilio | Domicilios visibles y su zona horaria | Supabase: `memberships`, `homes`, `robots` |
 | Resumen | Gas LP, metano, temperatura y humedad (valor, unidad, "Última lectura", calidad); Operación (batería y estaciones); mapa; Eventos y Avisos | Telemetría en vivo (`telemetry_frames` y sus tablas hijas, deltas por `stream_version` + Realtime), unidades de `channels` y alertas |
 | Mapa | Misión en curso, estaciones, sensores, batería, mapa con pose e incertidumbre, habitaciones | Pose y batería: telemetría. Misión: `missions`. Plano (archivo del mapa) y habitaciones: **pendiente de backend** |
@@ -31,8 +32,8 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
 
 ## Diferencias con los mockups (y por qué)
 
-- **Sin "Hola, nombre" ni "Cerrar sesión"**: dependen del inicio de sesión, que va al final.
-- **Sin logo**: el equipo todavía no lo define; la app usa el ícono por defecto del sistema.
+- **Sin "Hola, nombre"**: depende del perfil extendido en la BD; el cierre de sesión ya está integrado en Ajustes.
+- **Sin logo**: el equipo todavía no lo define; la app usa el ícono de robot centinela por defecto del sistema.
 - **Gráficas de un canal a la vez**: el mockup apila ADC, °C y % en un mismo eje, lo que mezcla
   unidades (§12.5, RNF12). El selector de canal del mockup elige qué se grafica.
 - **Estados como insignias**: el verde "Dato válido" sobre blanco no alcanza el contraste 4.5:1 que
@@ -55,4 +56,4 @@ El build `demo` no tiene pantalla de inicio de sesión ni cuenta de prueba: la s
 (`PublicReadAuthAdapter`) y el selector de domicilio muestra lo que el rol `anon` puede leer. Con los datos
 actuales (2 frames, el último del 23 de octubre de 2026) se ven los estados "Atrasado", "Sin alertas" y
 "pendiente de backend" en misiones y mapa. Detalle en
-[ADR-006](../decisions/ADR-006-demo-lectura-publica.md).
+[ADR-007](../decisions/ADR-007-demo-lectura-publica.md).
