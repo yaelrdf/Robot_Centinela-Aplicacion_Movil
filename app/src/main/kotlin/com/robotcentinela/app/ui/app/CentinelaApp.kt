@@ -27,6 +27,7 @@ import com.robotcentinela.app.R
 import com.robotcentinela.app.shell.AppContainer
 import com.robotcentinela.app.ui.auth.LoginScreen
 import com.robotcentinela.app.ui.components.AppIcon
+import com.robotcentinela.app.ui.components.VisorSplash
 import com.robotcentinela.app.ui.homes.HomeSelectionScreen
 import com.robotcentinela.app.ui.main.MainScreen
 import com.robotcentinela.app.ui.theme.CentinelaTheme
@@ -68,18 +69,10 @@ private fun AppContent(container: AppContainer, preferences: UiPreferences) {
     }
 }
 
-/** Recuperando la sesión o entrando con la cuenta de prueba. */
+/** Recuperando la sesión guardada: pantalla de bienvenida de la marca. */
 @Composable
 private fun Connecting() {
-    val colors = CentinelaTheme.colors
-    Column(
-        Modifier.fillMaxSize().background(colors.background).safeDrawingPadding().padding(Spacing.xl),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        CircularProgressIndicator(color = colors.primary)
-        Text("Conectando con el servidor…", style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
-    }
+    VisorSplash(status = "Conectando con el servidor…")
 }
 
 /** La configuración de Supabase es inválida (por ejemplo, clave privilegiada o URL sin HTTPS, RNF08). */
@@ -90,7 +83,7 @@ private fun ConfigurationError(message: String) {
         Modifier.fillMaxSize().background(colors.background).safeDrawingPadding().padding(Spacing.xl),
         verticalArrangement = Arrangement.spacedBy(Spacing.m, Alignment.CenterVertically),
     ) {
-        AppIcon(R.drawable.ic_error, size = 40.dp, tint = colors.critical)
+        AppIcon(R.drawable.ic_error, size = 40.dp, tint = colors.criticalText)
         Text("No se pudo configurar la conexión", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
         Text(message, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
         Text(

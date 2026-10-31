@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.robotcentinela.app.BuildConfig
 import com.robotcentinela.app.R
 import com.robotcentinela.app.identity.domain.HomeMembership
 import com.robotcentinela.app.ui.app.uiDependencies
@@ -83,13 +84,16 @@ fun HomeSelectionScreen(onChosen: () -> Unit) {
                     color = colors.onChrome,
                     modifier = Modifier.weight(1f).semantics { heading() },
                 )
-                TextButton(
-                    onClick = { scope.launch { deps.container.signOut() } },
-                    shape = CentinelaShapes.pill,
-                ) {
-                    AppIcon(R.drawable.ic_logout, size = 18.dp, tint = colors.onChrome)
-                    Spacer(Modifier.size(Spacing.xs))
-                    Text("Salir", style = MaterialTheme.typography.labelSmall, color = colors.onChrome)
+                // El build demo usa una sesión fija de lectura pública: no hay sesión que cerrar.
+                if (!BuildConfig.DEMO_PUBLIC_READ) {
+                    TextButton(
+                        onClick = { scope.launch { deps.container.signOut() } },
+                        shape = CentinelaShapes.pill,
+                    ) {
+                        AppIcon(R.drawable.ic_logout, size = 18.dp, tint = colors.onChrome)
+                        Spacer(Modifier.size(Spacing.xs))
+                        Text("Salir", style = MaterialTheme.typography.labelSmall, color = colors.onChrome)
+                    }
                 }
             }
             Text(

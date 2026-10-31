@@ -2,4 +2,11 @@
 <resources>
     <!-- Solo para la ventana; la interfaz usa los tokens de ui/theme/CentinelaColors.kt. -->
     <color name="centinela_background">#EEEEEE</color>
+
+    <!-- Paleta V.I.S.O.R. (Manual de identidad corporativa, §4.1) para recursos fuera de Compose:
+         ícono del launcher y pantalla de inicio del sistema. -->
+    <color name="visor_black_blue">#041839</color>
+    <color name="visor_off_white">#EEEEEE</color>
+    <color name="visor_navy">#2D4059</color>
+    <color name="visor_bright_orange">#FF5722</color>
 </resources>

@@ -42,18 +42,15 @@ import com.robotcentinela.app.missions.domain.MissionSummary
 import com.robotcentinela.app.ui.app.uiDependencies
 import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.components.EmptyState
+import com.robotcentinela.app.ui.components.FutureFeatureNotice
 import com.robotcentinela.app.ui.components.ErrorState
-import com.robotcentinela.app.ui.components.FloorPlanView
 import com.robotcentinela.app.ui.components.PagerControls
 import com.robotcentinela.app.ui.components.ScreenTitle
 import com.robotcentinela.app.ui.components.SectionCard
 import com.robotcentinela.app.ui.components.SkeletonBlock
-import com.robotcentinela.app.ui.main.FloorPlanState
 import com.robotcentinela.app.ui.model.Formats
-import com.robotcentinela.app.ui.model.MapLayers
 import com.robotcentinela.app.ui.model.OperationPresentation
 import com.robotcentinela.app.ui.model.StatusTone
-import com.robotcentinela.app.ui.summary.planNote
 import com.robotcentinela.app.ui.theme.CentinelaShapes
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
@@ -133,7 +130,7 @@ fun MissionsScreen(robot: Robot, zone: ZoneId, currentMissionId: MissionId?) {
                     else -> {
                         selected?.let { mission ->
                             MissionDetailsCard(mission)
-                            SelectedMissionMap(robot, zone, mission, isWide = isWide)
+                            SelectedMissionMap()
                         }
                         MissionGrid(
                             missions = state.missions,
@@ -191,36 +188,11 @@ private fun MissionDetailsCard(mission: MissionSummary) {
     }
 }
 
-/** Mapa de la misión seleccionada, sobre la versión EXACTA de mapa que usó (HU05 CDA 2). */
+/** El mapa asistido 2D de la misión no se incluye en esta versión: se muestra la leyenda de implementación futura. */
 @Composable
-private fun SelectedMissionMap(robot: Robot, zone: ZoneId, mission: MissionSummary, isWide: Boolean = false) {
-    val deps = uiDependencies
-    val colors = CentinelaTheme.colors
-    val id = mission.id.value.toString()
-    val vm: MissionDetailViewModel = viewModel(key = "mission-$id") { MissionDetailViewModel(deps.container, robot, zone, id) }
-    val state by vm.state.collectAsStateWithLifecycle()
+private fun SelectedMissionMap() {
     SectionCard(title = "Mapa asistido 2D") {
-        val plan = (state.floorPlan as? FloorPlanState.Available)?.plan
-        if (state.trajectory.isEmpty() && plan == null) {
-            Text("Sin poses registradas para esta misión.", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-        } else {
-            FloorPlanView(
-                plan = plan,
-                trajectory = state.trajectory,
-                robot = null,
-                layers = MapLayers(route = true, samples = true),
-                modifier = Modifier.fillMaxWidth().height(if (isWide) 300.dp else 240.dp),
-                interactive = true,
-                accessibilitySummary = "Trayectoria de la misión con ${state.trajectory.size} puntos.",
-            )
-        }
-        Text(
-            "Posición estimada - Incertidumbre visible",
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(top = Spacing.s),
-        )
-        planNote(state.floorPlan)?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary) }
+        FutureFeatureNotice()
     }
 }
 

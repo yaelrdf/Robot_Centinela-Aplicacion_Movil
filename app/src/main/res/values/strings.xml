@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Robot Centinela</string>
+    <string name="app_name">V.I.S.O.R.</string>
+    <string name="visor_nombre_completo">Vigilancia e Innovación en Sistemas Operativos Robotizados</string>
+    <string name="visor_lema">“Protección con precisión robótica”</string>
 </resources>

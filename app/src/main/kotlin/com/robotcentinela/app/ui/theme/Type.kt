@@ -21,7 +21,20 @@ val Poppins = FontFamily(
     Font(R.font.poppins_bold, FontWeight.Bold),
 )
 
+/**
+ * Questrial (Manual de identidad, §4.2): titulares y logotipo. Solo existe en peso regular, así que los
+ * titulares no piden negrita (Compose la sintetizaría y deformaría las formas circulares de la fuente).
+ */
+val Questrial = FontFamily(Font(R.font.questrial_regular, FontWeight.Normal))
+
 private const val TABULAR = "tnum"
+
+private fun headline(size: Int, line: Int) = TextStyle(
+    fontFamily = Questrial,
+    fontWeight = FontWeight.Normal,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+)
 
 private fun style(size: Int, weight: FontWeight, line: Int) = TextStyle(
     fontFamily = Poppins,
@@ -36,10 +49,10 @@ private fun style(size: Int, weight: FontWeight, line: Int) = TextStyle(
  * ayudas 13-14. El cuerpo nunca baja de 16 para encajar componentes.
  */
 val CentinelaTypography = Typography(
-    displaySmall = style(32, FontWeight.SemiBold, 40),
-    headlineMedium = style(28, FontWeight.SemiBold, 36),
-    headlineSmall = style(24, FontWeight.Bold, 32),
-    titleLarge = style(20, FontWeight.SemiBold, 28),
+    displaySmall = headline(32, 40),
+    headlineMedium = headline(28, 36),
+    headlineSmall = headline(26, 34),
+    titleLarge = headline(22, 30),
     titleMedium = style(18, FontWeight.SemiBold, 26),
     titleSmall = style(16, FontWeight.SemiBold, 24),
     bodyLarge = style(16, FontWeight.Normal, 24),

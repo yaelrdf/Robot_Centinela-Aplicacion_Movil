@@ -7,4 +7,12 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+
+    <!-- Pantalla de inicio del sistema (Manual de identidad, pág. 27): fondo Black Blue con el isotipo.
+         Al terminar, la actividad pasa a Theme.Centinela (postSplashScreenTheme). -->
+    <style name="Theme.Centinela.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/visor_black_blue</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_isotipo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Centinela</item>
+    </style>
 </resources>

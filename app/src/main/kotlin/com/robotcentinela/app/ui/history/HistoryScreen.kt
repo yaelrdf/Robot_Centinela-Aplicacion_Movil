@@ -52,12 +52,14 @@ import com.robotcentinela.app.ui.app.uiDependencies
 import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.components.EmptyState
 import com.robotcentinela.app.ui.components.ErrorState
+import com.robotcentinela.app.ui.components.FutureFeatureNotice
 import com.robotcentinela.app.ui.components.LineChart
 import com.robotcentinela.app.ui.components.RangeSelector
 import com.robotcentinela.app.ui.components.RefreshingNote
 import com.robotcentinela.app.ui.components.ScreenTitle
 import com.robotcentinela.app.ui.components.SectionCard
 import com.robotcentinela.app.ui.components.SkeletonBlock
+import com.robotcentinela.app.ui.model.StatusTone
 import com.robotcentinela.app.ui.model.Formats
 import com.robotcentinela.app.ui.model.OperationPresentation
 import com.robotcentinela.app.ui.model.RangePreset
@@ -164,12 +166,7 @@ fun HistoryScreen(robot: Robot, zone: ZoneId, onChangeHome: () -> Unit) {
         }
 
         SectionCard(title = "Por habitación") {
-            Text(
-                "Las lecturas por habitación las calculará el backend con el plano validado del domicilio; " +
-                    "la app no asigna lecturas a habitaciones por su cuenta.",
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.textSecondary,
-            )
+            FutureFeatureNotice()
         }
     }
 }
@@ -270,8 +267,8 @@ private fun AlertDonut(breakdown: AlertBreakdown) {
             } else {
                 var start = -90f
                 listOf(
-                    breakdown.critical to colors.critical,
-                    breakdown.warning to colors.warning,
+                    breakdown.critical to colors.graphic(StatusTone.Critical),
+                    breakdown.warning to colors.graphic(StatusTone.Warning),
                     breakdown.other to colors.statusNeutral,
                 ).forEach { (count, color) ->
                     if (count > 0) {

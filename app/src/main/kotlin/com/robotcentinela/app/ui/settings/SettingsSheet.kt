@@ -98,35 +98,38 @@ fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> U
                     AppIcon(R.drawable.ic_person, tint = colors.textSecondary)
                     Column(Modifier.weight(1f)) {
                         Text(
-                            if (savedEmail.isNotEmpty()) savedEmail else "Usuario autenticado",
+                            if (BuildConfig.DEMO_PUBLIC_READ) "Modo demostración" else if (savedEmail.isNotEmpty()) savedEmail else "Usuario autenticado",
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(
-                            "ID: ${userId.take(8)}...${userId.takeLast(4)}",
+                            if (BuildConfig.DEMO_PUBLIC_READ) "Lectura pública, sin inicio de sesión" else "ID: ${userId.take(8)}...${userId.takeLast(4)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.textSecondary,
                         )
                     }
                 }
             }
-            OutlinedButton(
-                onClick = {
-                    onDismiss()
-                    scope.launch { deps.container.signOut() }
-                },
-                shape = CentinelaShapes.control,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = CentinelaShapes.minTouchTarget),
-            ) {
-                AppIcon(R.drawable.ic_logout, tint = colors.critical)
-                Spacer(Modifier.size(Spacing.s))
-                Text("Cerrar sesión", color = colors.critical)
+            // El build demo usa una sesión fija de lectura pública: no hay sesión que cerrar.
+            if (!BuildConfig.DEMO_PUBLIC_READ) {
+                OutlinedButton(
+                    onClick = {
+                        onDismiss()
+                        scope.launch { deps.container.signOut() }
+                    },
+                    shape = CentinelaShapes.control,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = CentinelaShapes.minTouchTarget),
+                ) {
+                    AppIcon(R.drawable.ic_logout, tint = colors.criticalText)
+                    Spacer(Modifier.size(Spacing.s))
+                    Text("Cerrar sesión", color = colors.criticalText)
+                }
             }
 
             HorizontalDivider(color = colors.border)
             Text(
-                "Robot Centinela ${BuildConfig.VERSION_NAME}. Esta app es de consulta: no envía comandos al robot.",
+                "V.I.S.O.R. ${BuildConfig.VERSION_NAME}. Esta app es de consulta: no envía comandos al robot.",
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.textSecondary,
             )

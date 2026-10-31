@@ -4,7 +4,6 @@ import com.robotcentinela.app.environmentalmonitoring.application.DescribeChanne
 import com.robotcentinela.app.environmentalmonitoring.application.QueryChannelCapabilities
 import com.robotcentinela.app.environmentalmonitoring.application.QueryMetricAggregates
 import com.robotcentinela.app.environmentalmonitoring.domain.FreshnessPolicy
-import com.robotcentinela.app.homemapping.application.QueryFloorPlan
 import com.robotcentinela.app.identity.application.CurrentHomeScope
 import com.robotcentinela.app.identity.application.ListAuthorizedHomes
 import com.robotcentinela.app.identity.application.RecoverAccess
@@ -66,7 +65,6 @@ class AppContainer(
     // --- Casos de uso de contratos pendientes (null si el origen de datos no los ofrece) ---
     val queryChannelCapabilities = adapters.capabilities?.let { QueryChannelCapabilities(it, currentHomeScope) }
     val queryMetricAggregates = adapters.aggregates?.let { QueryMetricAggregates(it, currentHomeScope) }
-    val queryFloorPlan = adapters.floorPlans?.let { QueryFloorPlan(it, currentHomeScope) }
     val listMissions = adapters.missions?.let { ListMissions(it, currentHomeScope) }
     val getMissionSummary = adapters.missions?.let { GetMissionSummary(it, currentHomeScope) }
 

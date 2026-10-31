@@ -13,6 +13,7 @@ junit = "6.1.3"
 # Compose 1.12 / Lifecycle 2.11 / Navigation 2.10 se compilan con API 37: por eso compileSdk = 37.
 composeBom = "2026.09.00"
 activityCompose = "1.13.0"
+coreSplashscreen = "1.0.1"
 lifecycle = "2.11.0"
 navigationCompose = "2.10.2"
 
@@ -37,6 +38,7 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }

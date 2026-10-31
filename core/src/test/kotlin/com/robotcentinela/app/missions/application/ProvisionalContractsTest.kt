@@ -1,10 +1,7 @@
 package com.robotcentinela.app.missions.application
 
-import com.robotcentinela.app.homemapping.application.QueryFloorPlan
-import com.robotcentinela.app.homemapping.domain.FloorPlan
 import com.robotcentinela.app.homemapping.domain.MapVersionId
 import com.robotcentinela.app.homemapping.domain.StationId
-import com.robotcentinela.app.homemapping.ports.FloorPlanPort
 import com.robotcentinela.app.identity.application.CurrentHomeScope
 import com.robotcentinela.app.identity.application.SelectHomeScope
 import com.robotcentinela.app.identity.domain.HomeId
@@ -27,7 +24,6 @@ import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
 
 /** Contratos provisionales de mapas y misiones (HU05, HU06, HU08). */
 class ProvisionalContractsTest {
@@ -41,7 +37,6 @@ class ProvisionalContractsTest {
     private val currentScope = CurrentHomeScope()
 
     private val mapV1 = MapVersionId(UUID(0, 0x41))
-    private val mapV2 = MapVersionId(UUID(0, 0x42))
 
     private fun mission(robotId: RobotId, vararg outcomes: StationOutcome) = MissionSummary(
         id = MissionId(UUID.randomUUID()),
@@ -93,15 +88,5 @@ class ProvisionalContractsTest {
         val list = ListMissions(port, currentScope)
         assertEquals(1, list(TestFrames.ROBOT_ID, PageRequest(20)).size)
         assertFailsWith<NotInScopeException> { list(TestFrames.OTHER_ROBOT_ID, PageRequest(20)) }
-    }
-
-    @Test
-    fun `el plano se entrega solo para la versión exacta pedida`() = runTest {
-        SelectHomeScope(scopePort, currentScope)(TestFrames.HOME_ID)
-        val port = object : FloorPlanPort {
-            override suspend fun floorPlan(robotId: RobotId, mapVersionId: MapVersionId) =
-                FloorPlan(mapV2, 5.0, 4.0, semantic = true, rooms = emptyList(), walls = emptyList(), stations = emptyList())
-        }
-        assertNull(QueryFloorPlan(port, currentScope)(TestFrames.ROBOT_ID, mapV1))
     }
 }

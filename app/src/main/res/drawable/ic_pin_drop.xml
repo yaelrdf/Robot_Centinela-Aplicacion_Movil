@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Symbols Rounded "pin_drop" (Apache License 2.0, Google). Generado por fetch_icons.py. -->
+<!-- Ícono «ubicacion» de la iconografía V.I.S.O.R. (Manual de identidad corporativa, pág. 22), vectorizado. El color lo pone la interfaz. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
-    <group
-        android:translateX="0"
-        android:translateY="960">
-        <path android:fillColor="#FF000000" android:pathData="M480-301q99-80 149.5-154T680-594q0-56-20.5-95.5t-50.5-64Q579-778 544-789t-64-11q-29 0-64 11t-65 35.5q-30 24.5-50.5 64T280-594q0 65 50.5 139T480-301Zm0 85q-10 0-19.5-3t-17.5-9q-81-63-162-158.5T200-594q0-71 25.5-124.5T291-808q40-36 90-54t99-18q49 0 99 18t90 54q40 36 65.5 89.5T760-594q0 112-81 207.5T517-228q-8 6-17.5 9t-19.5 3Zm0-304q33 0 56.5-23.5T560-600q0-33-23.5-56.5T480-680q-33 0-56.5 23.5T400-600q0 33 23.5 56.5T480-520ZM240-80q-17 0-28.5-11.5T200-120q0-17 11.5-28.5T240-160h480q17 0 28.5 11.5T760-120q0 17-11.5 28.5T720-80H240Zm240-514Z" />
-    </group>
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <path android:fillColor="#FF000000" android:fillType="evenOdd"
+        android:pathData="M94.60,178.59C54.37,143.14 34.31,113.00 33.58,86.88C33.01,66.69 38.73,50.53 50.87,38.03C64.90,23.59 80.44,16.91 100.00,16.91C114.62,16.91 125.68,20.25 137.75,28.29C157.31,41.32 167.14,61.42 166.42,86.88C165.69,113.00 145.63,143.14 105.40,178.59C101.79,181.77 100.51,182.75 100.00,182.75C99.49,182.75 98.21,181.77 94.60,178.59ZM104.92,162.29C130.54,138.14 145.93,117.33 151.83,98.88C156.64,83.82 153.51,64.76 144.06,51.58C131.89,34.61 111.19,26.38 89.98,30.08C55.76,36.04 36.51,72.90 50.72,105.27C55.42,115.99 62.82,127.13 73.63,139.75C81.56,149.02 98.69,166.25 99.97,166.25C100.59,166.25 101.43,165.58 104.92,162.29ZM96.16,97.35C90.47,95.98 85.88,90.26 85.56,84.16C84.82,70.08 102.41,63.33 111.31,74.29C120.08,85.09 109.84,100.67 96.16,97.35Z" />
 </vector>

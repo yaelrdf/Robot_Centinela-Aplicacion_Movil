@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.robotcentinela.app.shell.CentinelaApplication
 import com.robotcentinela.app.ui.app.CentinelaApp
 import com.robotcentinela.app.ui.app.UiPreferences
@@ -17,6 +18,8 @@ import com.robotcentinela.app.ui.app.UiPreferences
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Pantalla de inicio de la marca (Theme.Centinela.Starting); al terminar pasa a Theme.Centinela.
+        installSplashScreen()
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),

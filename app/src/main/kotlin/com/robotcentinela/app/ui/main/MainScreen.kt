@@ -218,7 +218,6 @@ private fun MainNavHost(
                 live = live,
                 onRangeChange = vm::setAlertRange,
                 onOpenChannel = onOpenChannel,
-                onOpenMap = { navController.navigateTab(MapRoute) },
                 onOpenEvents = { navController.navigateTab(EventsRoute) },
                 onOpenAlert = onOpenAlert,
                 onRetryAlerts = vm::retryAlerts,

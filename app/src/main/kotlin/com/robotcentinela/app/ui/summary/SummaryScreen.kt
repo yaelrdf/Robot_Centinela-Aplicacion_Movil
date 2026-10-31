@@ -29,8 +29,8 @@ import com.robotcentinela.app.R
 import com.robotcentinela.app.environmentalmonitoring.domain.ChannelKey
 import com.robotcentinela.app.incidents.domain.Alert
 import com.robotcentinela.app.ui.components.AppIcon
+import com.robotcentinela.app.ui.components.FutureFeatureNotice
 import com.robotcentinela.app.ui.components.ErrorState
-import com.robotcentinela.app.ui.components.FloorPlanView
 import com.robotcentinela.app.ui.components.MetricCard
 import com.robotcentinela.app.ui.components.MetricCardSkeleton
 import com.robotcentinela.app.ui.components.OperationCard
@@ -40,10 +40,8 @@ import com.robotcentinela.app.ui.components.ScreenTitle
 import com.robotcentinela.app.ui.components.SectionCard
 import com.robotcentinela.app.ui.components.SkeletonBlock
 import com.robotcentinela.app.ui.events.AlertRow
-import com.robotcentinela.app.ui.main.FloorPlanState
 import com.robotcentinela.app.ui.main.LiveUiState
 import com.robotcentinela.app.ui.model.DateRange
-import com.robotcentinela.app.ui.model.MapLayers
 import com.robotcentinela.app.ui.model.MetricCardModel
 import com.robotcentinela.app.ui.model.OperationPresentation
 import com.robotcentinela.app.ui.model.RangePreset
@@ -56,7 +54,6 @@ fun SummaryScreen(
     live: LiveUiState,
     onRangeChange: (DateRange) -> Unit,
     onOpenChannel: (ChannelKey) -> Unit,
-    onOpenMap: () -> Unit,
     onOpenEvents: () -> Unit,
     onOpenAlert: (Alert) -> Unit,
     onRetryAlerts: () -> Unit,
@@ -105,11 +102,11 @@ fun SummaryScreen(
                     Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.l),
                 ) {
-                    MapCard(live, onOpenMap, Modifier.weight(1f).fillMaxHeight())
+                    MapCard(Modifier.weight(1f).fillMaxHeight())
                     EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts, Modifier.weight(1f).fillMaxHeight())
                 }
             } else {
-                MapCard(live, onOpenMap)
+                MapCard()
                 EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts)
             }
 
@@ -148,62 +145,12 @@ private fun MetricGrid(cards: List<MetricCardModel?>, columns: Int, onOpen: (Cha
     }
 }
 
+/** El mapa asistido 2D no se incluye en esta versión: se muestra la leyenda de implementación futura. */
 @Composable
-private fun MapCard(live: LiveUiState, onOpenMap: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = CentinelaTheme.colors
-    SectionCard(
-        modifier = modifier,
-        title = "Mapa asistido 2D",
-        onClick = onOpenMap,
-        onClickLabel = "Abrir el mapa",
-        trailing = { AppIcon(R.drawable.ic_chevron_right, tint = colors.textSecondary) },
-    ) {
-        val plan = (live.floorPlan as? FloorPlanState.Available)?.plan
-        if (live.floorPlan == FloorPlanState.Loading && live.robotMarker == null) {
-            SkeletonBlock(Modifier.fillMaxWidth(), height = 200.dp)
-        }
-        if (live.robotMarker != null || live.trajectory.isNotEmpty() || plan != null) {
-            FloorPlanView(
-                plan = plan,
-                trajectory = live.trajectory,
-                robot = live.robotMarker,
-                layers = MapLayers(route = true, samples = false),
-                modifier = Modifier.fillMaxWidth().height(220.dp),
-                accessibilitySummary = mapSummary(live),
-            )
-        }
-        Text(
-            when {
-                live.robotMarker == null -> "Sin posición: el último frame no trae pose."
-                live.poseStale -> "Posición del último reporte (atrasada) · ${live.poseText}"
-                else -> "Posición estimada · ${live.poseText}"
-            },
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(top = Spacing.s),
-        )
-        planNote(live.floorPlan)?.let {
-            Text(it, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-        }
+private fun MapCard(modifier: Modifier = Modifier) {
+    SectionCard(modifier = modifier, title = "Mapa asistido 2D") {
+        FutureFeatureNotice()
     }
-}
-
-/** Nota sobre el plano cuando no se puede dibujar (HU05). */
-fun planNote(state: FloorPlanState): String? = when (state) {
-    FloorPlanState.ContractPending -> "Plano no disponible: el contrato de mapas está pendiente. Se dibuja la trayectoria sobre una cuadrícula."
-    FloorPlanState.NoFile -> "Esta versión de mapa no tiene archivo de plano. Consulta las estaciones en Misiones."
-    FloorPlanState.NoMapVersion -> "El último frame no indica versión de mapa."
-    is FloorPlanState.Error -> "No se pudo cargar el plano: ${state.message}"
-    else -> null
-}
-
-/** Texto alternativo del mapa para lectores de pantalla. */
-fun mapSummary(live: LiveUiState): String = buildString {
-    append("Mapa asistido. ")
-    append(live.poseText?.let { "Robot en posición estimada $it. " } ?: "Sin posición del robot. ")
-    if (live.poseStale) append("La posición es del último reporte y está atrasada. ")
-    append("Ruta con ${live.trajectory.size} puntos. ")
-    live.mission?.let { append("Estaciones visitadas ${OperationPresentation.stationProgress(it)}.") }
 }
 
 @Composable

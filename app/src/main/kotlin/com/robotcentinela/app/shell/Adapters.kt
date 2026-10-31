@@ -3,7 +3,6 @@ package com.robotcentinela.app.shell
 import com.robotcentinela.app.environmentalmonitoring.adapters.supabase.SupabaseCapabilitiesAdapter
 import com.robotcentinela.app.environmentalmonitoring.ports.CapabilitiesPort
 import com.robotcentinela.app.environmentalmonitoring.ports.MetricAggregatePort
-import com.robotcentinela.app.homemapping.ports.FloorPlanPort
 import com.robotcentinela.app.identity.adapters.supabase.PublicReadAuthAdapter
 import com.robotcentinela.app.identity.adapters.supabase.PublicReadHomeScopeAdapter
 import com.robotcentinela.app.identity.adapters.supabase.SupabaseAuthAdapter
@@ -36,19 +35,18 @@ class Adapters(
     val telemetryNotifier: TelemetryChangeNotifier,
     val alertQuery: AlertQueryPort,
     // Capacidades (tabla `channels`) y misiones (tabla `missions`) ya tienen adaptador.
-    // [PENDIENTE DE CONTRATO REAL]: agregados métricos y planos cartográficos aún no cuentan con
+    // [PENDIENTE DE CONTRATO REAL]: agregados métricos aún no cuentan con
     // tablas publicadas en el backend. Se mantienen como null para indicar explícitamente a la UI el
     // estado "pendiente de backend" sin usar datos inventados.
     val capabilities: CapabilitiesPort? = null,
     val aggregates: MetricAggregatePort? = null,
-    val floorPlans: FloorPlanPort? = null,
     val missions: MissionQueryPort? = null,
 ) {
     companion object {
 
         /**
          * Adaptadores de Supabase conectados al backend real, según el esquema del equipo. Agregados
-         * (cálculo en servidor) y planos (archivo del mapa en Storage) todavía esperan contrato (B8).
+         * (cálculo en servidor) todavía esperan contrato (B8).
          *
          * Con [publicRead] (build `demo`) no hay inicio de sesión: la app lee solo con la clave pública, como
          * el rol `anon`. Solo cambian la sesión, el ámbito de domicilio y las columnas de telemetría;

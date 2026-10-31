@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.robotcentinela.app.R
+import com.robotcentinela.app.ui.components.FutureFeatureNotice
 import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.components.SectionCard
 import com.robotcentinela.app.ui.theme.CentinelaShapes
@@ -79,17 +80,14 @@ fun NewMissionSheet(onDismiss: () -> Unit) {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colors.focus,
                             unfocusedBorderColor = colors.border,
-                            errorBorderColor = colors.critical,
-                            errorSupportingTextColor = colors.critical,
+                            errorBorderColor = colors.criticalText,
+                            errorSupportingTextColor = colors.criticalText,
                         ),
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Text("Elige las estaciones", style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        "Las estaciones se eligen sobre el plano validado del domicilio, que todavía no publica el backend.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
-                    )
+                    // Las estaciones se eligen sobre el mapa 2D, que no se incluye en esta versión.
+                    FutureFeatureNotice()
                     Row(Modifier.fillMaxWidth()) {
                         Text("Estaciones: 0", style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
                         Text("Tiempo estimado: —", style = MaterialTheme.typography.labelMedium)

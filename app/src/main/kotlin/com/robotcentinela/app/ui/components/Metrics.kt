@@ -70,7 +70,7 @@ fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = 
     val colors = CentinelaTheme.colors
     val critical = model.status.tone == StatusTone.Critical
     val targetBorderColor = when {
-        critical -> colors.critical
+        critical -> colors.criticalText
         model.stale -> colors.warning
         else -> colors.border
     }
@@ -117,7 +117,7 @@ fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = 
                             .background(if (critical) colors.critical.copy(alpha = 0.15f) else colors.statusNeutral.copy(alpha = 0.45f)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        AppIcon(iconId, size = 18.dp, tint = if (critical) colors.critical else colors.textPrimary)
+                        AppIcon(iconId, size = 18.dp, tint = if (critical) colors.criticalText else colors.textPrimary)
                     }
                 }
             }

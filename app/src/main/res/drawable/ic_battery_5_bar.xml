@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Symbols Rounded "battery_5_bar" (Apache License 2.0, Google). Generado por fetch_icons.py. -->
+<!-- Ícono «bateria» de la iconografía V.I.S.O.R. (Manual de identidad corporativa, pág. 22), vectorizado. El color lo pone la interfaz. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
-    <group
-        android:translateX="0"
-        android:translateY="960">
-        <path android:fillColor="#FF000000" android:pathData="M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-40q0-17 11.5-28.5T440-880h80q17 0 28.5 11.5T560-840v40h80q17 0 28.5 11.5T680-760v640q0 17-11.5 28.5T640-80H320Zm40-480h240v-160H360v160Z" />
-    </group>
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <path android:fillColor="#FF000000" android:fillType="evenOdd"
+        android:pathData="M24.38,149.72C15.53,148.42 9.22,141.58 8.49,132.50C8.19,128.75 8.19,71.25 8.49,67.50C9.05,60.52 12.67,55.08 18.80,52.01C22.89,49.95 16.24,50.12 91.88,50.12L159.12,50.12L161.07,50.69C167.54,52.56 172.44,57.45 174.30,63.89L174.88,65.88L174.88,100.00L174.88,134.12L174.30,136.11C172.46,142.48 167.67,147.30 161.21,149.31L159.38,149.87L92.62,149.91C55.48,149.93 25.21,149.85 24.38,149.72ZM181.64,118.69C181.30,118.20 181.25,116.01 181.25,100.00C181.25,78.79 180.96,80.75 184.08,80.75C187.69,80.75 189.52,81.73 190.87,84.37L191.62,85.84L191.62,100.00L191.62,114.16L190.87,115.63C189.52,118.27 187.69,119.25 184.08,119.25C182.24,119.25 181.99,119.19 181.64,118.69Z" />
 </vector>

@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Symbols Rounded "check_circle" (Apache License 2.0, Google). Generado por fetch_icons.py. -->
+<!-- Ícono «check» de la iconografía V.I.S.O.R. (Manual de identidad corporativa, pág. 22), vectorizado. El color lo pone la interfaz. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
-    <group
-        android:translateX="0"
-        android:translateY="960">
-        <path android:fillColor="#FF000000" android:pathData="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z" />
-    </group>
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <path android:fillColor="#FF000000" android:fillType="evenOdd"
+        android:pathData="M93.50,182.99C55.51,180.32 23.06,149.97 17.59,112.00C10.54,62.97 47.70,18.52 97.15,16.86C139.58,15.43 176.61,46.30 182.42,87.95C189.83,141.01 147.04,186.75 93.50,182.99ZM111.38,169.89C132.84,166.59 150.71,154.03 162.11,134.25C174.95,111.97 173.33,80.59 158.25,59.50C144.11,39.71 124.17,29.41 100.00,29.41C76.01,29.41 55.87,39.82 41.75,59.50C26.68,80.52 25.05,111.97 37.89,134.25C53.21,160.85 81.35,174.50 111.38,169.89ZM71.54,121.69C56.08,106.26 54.00,104.08 54.00,103.31C54.00,102.91 61.49,95.17 62.31,94.72C63.07,94.31 63.59,94.77 75.63,106.78C82.10,113.23 87.51,118.50 87.66,118.50C88.34,118.50 91.35,115.57 113.25,93.65C131.35,75.53 136.76,70.25 137.23,70.25C138.11,70.25 146.00,78.12 146.00,79.00C146.00,79.91 88.66,137.25 87.75,137.25C87.27,137.25 83.76,133.88 71.54,121.69Z" />
 </vector>

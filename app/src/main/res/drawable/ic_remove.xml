@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Symbols Rounded "remove" (Apache License 2.0, Google). Generado por fetch_icons.py. -->
+<!-- Ícono «menos» de la iconografía V.I.S.O.R. (Manual de identidad corporativa, pág. 22), vectorizado. El color lo pone la interfaz. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
-    <group
-        android:translateX="0"
-        android:translateY="960">
-        <path android:fillColor="#FF000000" android:pathData="M240-440q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h480q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H240Z" />
-    </group>
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <path android:fillColor="#FF000000" android:fillType="evenOdd"
+        android:pathData="M35.13,174.71C30.53,173.83 26.13,169.34 25.27,164.64C24.89,162.55 24.89,37.45 25.27,35.36C26.16,30.49 30.66,26.05 35.50,25.27C37.77,24.90 162.23,24.90 164.50,25.27C169.34,26.05 173.84,30.49 174.73,35.36C175.11,37.45 175.11,162.55 174.73,164.64C173.85,169.45 169.45,173.85 164.64,174.73C162.72,175.08 36.98,175.06 35.13,174.71ZM161.89,161.89L162.50,161.27L162.50,100.00L162.50,38.73L161.89,38.11L161.27,37.50L100.00,37.50L38.73,37.50L38.11,38.11L37.50,38.73L37.50,100.00L37.50,161.27L38.11,161.89L38.73,162.50L100.00,162.50L161.27,162.50L161.89,161.89ZM53.46,105.82C52.23,105.63 52.13,105.27 52.04,100.39C51.93,94.77 52.12,93.88 53.44,93.51C54.70,93.16 145.52,93.15 146.73,93.50C147.20,93.63 147.68,93.88 147.79,94.06C148.17,94.66 148.04,104.85 147.65,105.39C147.31,105.84 56.28,106.26 53.46,105.82Z" />
 </vector>

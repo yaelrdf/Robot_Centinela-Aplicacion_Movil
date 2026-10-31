@@ -60,11 +60,13 @@ private fun animateCentinelaColors(target: CentinelaColors): CentinelaColors {
     val onOperational by animateColorAsState(target.onOperational, spec, label = "onOperational")
     val onWarning by animateColorAsState(target.onWarning, spec, label = "onWarning")
     val onCritical by animateColorAsState(target.onCritical, spec, label = "onCritical")
+    val alert by animateColorAsState(target.alert, spec, label = "alert")
+    val onAlert by animateColorAsState(target.onAlert, spec, label = "onAlert")
+    val criticalText by animateColorAsState(target.criticalText, spec, label = "criticalText")
     val statusNeutral by animateColorAsState(target.statusNeutral, spec, label = "statusNeutral")
     val onStatusNeutral by animateColorAsState(target.onStatusNeutral, spec, label = "onStatusNeutral")
     val chrome by animateColorAsState(target.chrome, spec, label = "chrome")
     val onChrome by animateColorAsState(target.onChrome, spec, label = "onChrome")
-    val unexploredHatch by animateColorAsState(target.unexploredHatch, spec, label = "unexploredHatch")
 
     return target.copy(
         background = background,
@@ -83,11 +85,13 @@ private fun animateCentinelaColors(target: CentinelaColors): CentinelaColors {
         onOperational = onOperational,
         onWarning = onWarning,
         onCritical = onCritical,
+        alert = alert,
+        onAlert = onAlert,
+        criticalText = criticalText,
         statusNeutral = statusNeutral,
         onStatusNeutral = onStatusNeutral,
         chrome = chrome,
         onChrome = onChrome,
-        unexploredHatch = unexploredHatch,
     )
 }
 

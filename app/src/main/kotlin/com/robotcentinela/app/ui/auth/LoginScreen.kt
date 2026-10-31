@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.heading
@@ -69,6 +70,7 @@ import com.robotcentinela.app.ui.model.StatusTone
 import com.robotcentinela.app.ui.theme.CentinelaShapes
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
+import com.robotcentinela.app.ui.components.VisorMark
 import com.robotcentinela.app.ui.theme.ThemePreference
 
 /**
@@ -136,33 +138,21 @@ fun LoginScreen() {
             }
 
             Column(
-                Modifier.fillMaxWidth().padding(top = Spacing.m),
+                // Deja libre la fila del selector de tema (objetivo táctil de 48 dp) para que no se encime.
+                Modifier.fillMaxWidth().padding(top = CentinelaShapes.minTouchTarget),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(Spacing.s),
             ) {
-                Box(
-                    Modifier
-                        .size(68.dp)
-                        .clip(CentinelaShapes.card)
-                        .background(colors.onChrome.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    AppIcon(
-                        R.drawable.ic_smart_toy,
-                        size = 38.dp,
-                        tint = colors.onChrome,
-                        contentDescription = null,
-                    )
-                }
+                VisorMark(size = 88.dp)
 
                 Text(
-                    "Robot Centinela",
+                    stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineSmall,
                     color = colors.onChrome,
                     modifier = Modifier.semantics { heading() },
                 )
                 Text(
-                    "Sistema de Monitoreo y Exploración de Gas",
+                    stringResource(R.string.visor_lema),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.onChrome.copy(alpha = 0.85f),
                     textAlign = TextAlign.Center,
