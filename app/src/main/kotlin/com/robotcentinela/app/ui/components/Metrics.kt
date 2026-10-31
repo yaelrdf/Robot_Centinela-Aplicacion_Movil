@@ -105,7 +105,7 @@ fun MetricCard(model: MetricCardModel, onOpen: () -> Unit, modifier: Modifier = 
                 Text(
                     model.title,
                     style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )

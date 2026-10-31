@@ -58,6 +58,10 @@ android {
             // Sin keystore del equipo todavía: se firma con la clave de depuración de Android para poder
             // instalarlo. Sirve para pruebas y demostraciones, no para publicar en una tienda.
             signingConfig = signingConfigs.getByName("debug")
+            // R8: reduce el código y los recursos (el APK sin minificar pesaba 34 MB).
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         // Demostración beta (ADR-007): lee de Supabase como el rol `anon`, sin pantalla de login ni cuenta
         // embebida. Se firma con la clave de depuración de Android: sirve para instalar, no para publicar.
@@ -65,7 +69,6 @@ android {
             initWith(getByName("release"))
             matchingFallbacks += "release"
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = false
             versionNameSuffix = "-demo"
             buildConfigField("boolean", "DEMO_PUBLIC_READ", "true")
         }

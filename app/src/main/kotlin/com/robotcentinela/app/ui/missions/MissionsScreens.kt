@@ -81,6 +81,8 @@ fun MissionsScreen(robot: Robot, zone: ZoneId, currentMissionId: MissionId?) {
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val isWide = maxWidth >= 760.dp
+        // En pantallas angostas (o con fuente grande) el botón baja debajo del título.
+        val buttonBesideTitle = maxWidth >= 560.dp
         val columns = when {
             maxWidth >= 820.dp -> 3
             maxWidth >= 340.dp -> 2
@@ -91,12 +93,8 @@ fun MissionsScreen(robot: Robot, zone: ZoneId, currentMissionId: MissionId?) {
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.l),
         ) {
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                ScreenTitle("Misiones", "Robot ${robot.publicCode}")
+            // El título ocupa todo el ancho disponible: para que el botón quepa a su lado se le da peso.
+            val newMissionButton: @Composable () -> Unit = {
                 Button(
                     onClick = { creating = true },
                     shape = CentinelaShapes.pill,
@@ -107,6 +105,21 @@ fun MissionsScreen(robot: Robot, zone: ZoneId, currentMissionId: MissionId?) {
                     Text("Generar nueva misión", style = MaterialTheme.typography.labelMedium)
                     Spacer(Modifier.width(Spacing.xs))
                     AppIcon(R.drawable.ic_add_circle, size = 18.dp, tint = colors.onWarning)
+                }
+            }
+            if (buttonBesideTitle) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                ) {
+                    ScreenTitle("Misiones", "Robot ${robot.publicCode}", Modifier.weight(1f))
+                    newMissionButton()
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    ScreenTitle("Misiones", "Robot ${robot.publicCode}")
+                    newMissionButton()
                 }
             }
 
