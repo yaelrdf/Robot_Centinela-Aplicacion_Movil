@@ -13,6 +13,7 @@ import com.robotcentinela.app.telemetry.ports.TelemetryChangeNotifier
 import com.robotcentinela.app.telemetry.ports.TelemetryNotice
 import com.robotcentinela.app.telemetry.ports.TelemetryQueryPort
 import com.robotcentinela.app.telemetry.ports.TelemetrySnapshot
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -36,6 +37,7 @@ class TelemetrySynchronizerTest {
         var snapshotCalls = 0
         var failure: Exception? = null
         var stalePageOverride: List<FrameRecord>? = null
+        var latency = 0.seconds
 
         fun persist(vararg versions: Long) {
             versions.forEach { stream += FrameRecord.Interpreted(frame(it)) }
@@ -50,6 +52,7 @@ class TelemetrySynchronizerTest {
 
         override suspend fun framesAfter(robotId: RobotId, after: StreamVersion, limit: Int): List<FrameRecord> {
             failure?.let { throw it }
+            if (latency > 0.seconds) delay(latency)
             stalePageOverride?.let { return it }
             return stream.filter { it.streamVersion > after }.sortedBy { it.streamVersion }.take(limit)
         }
@@ -124,6 +127,28 @@ class TelemetrySynchronizerTest {
         notice(TelemetryNotice.FrameCommitted)
 
         assertEquals(StreamVersion(6), sync.state.value.lastAppliedVersion)
+    }
+
+    @Test
+    fun `una rafaga de avisos que desborda el buffer no pierde frames`() = runTest {
+        query.persist(1)
+        val sync = startedSynchronizer()
+        notice(TelemetryNotice.Subscribed)
+
+        // Mientras la consulta está en curso llegan muchos más avisos que la capacidad del buffer (64).
+        query.latency = 5.seconds
+        query.persist(2)
+        notice(TelemetryNotice.FrameCommitted)
+        repeat(200) {
+            query.persist(3L + it)
+            notice(TelemetryNotice.FrameCommitted)
+        }
+        advanceTimeBy(30.seconds)
+        runCurrent()
+
+        // Los avisos descartados eran redundantes: el cursor por stream_version recupera todo.
+        assertEquals(StreamVersion(202), sync.state.value.lastAppliedVersion)
+        assertEquals(SyncStatus.Live, sync.state.value.status)
     }
 
     @Test

@@ -32,8 +32,8 @@ android {
         // minSdk 29: Android 10 (Q) como versión mínima requerida por el proyecto.
         minSdk = 29
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.3.0-beta"
+        versionCode = 3
+        versionName = "0.4.0-beta"
 
         buildConfigField("String", "SUPABASE_URL", "\"${localProperty("supabase.url")}\"")
         buildConfigField(
@@ -45,8 +45,8 @@ android {
         buildConfigField("boolean", "DEMO_PUBLIC_READ", "false")
     }
 
-    // Cuenta de PRUEBA para leer datos con RLS mientras no exista la pantalla de inicio de sesión (que
-    // el equipo dejó para el final). Solo existe en debug: release y demo nunca la llevan.
+    // La cuenta de PRUEBA (centinela.devEmail/devPassword) solo autocompleta el formulario de inicio de
+    // sesión en debug: release y demo nunca la llevan.
     buildTypes {
         debug {
             buildConfigField("String", "DEV_EMAIL", javaString(localProperty("centinela.devEmail")))
@@ -55,6 +55,9 @@ android {
         release {
             buildConfigField("String", "DEV_EMAIL", "\"\"")
             buildConfigField("String", "DEV_PASSWORD", "\"\"")
+            // Sin keystore del equipo todavía: se firma con la clave de depuración de Android para poder
+            // instalarlo. Sirve para pruebas y demostraciones, no para publicar en una tienda.
+            signingConfig = signingConfigs.getByName("debug")
         }
         // Demostración beta (ADR-007): lee de Supabase como el rol `anon`, sin pantalla de login ni cuenta
         // embebida. Se firma con la clave de depuración de Android: sirve para instalar, no para publicar.
