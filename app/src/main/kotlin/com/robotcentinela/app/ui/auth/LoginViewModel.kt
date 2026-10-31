@@ -161,11 +161,15 @@ class LoginViewModel(
     private fun formatAuthError(e: Exception): String {
         val msg = e.message.orEmpty()
         return when {
-            msg.contains("Invalid login credentials", ignoreCase = true) ->
+            // `supabaseCall` no deja pasar el texto del servidor: traduce el estado HTTP (400 y 422 al
+            // iniciar sesión con credenciales que no existen; 401 y 403 como acceso denegado).
+            msg.contains("Invalid login credentials", ignoreCase = true) ||
+                msg.contains("respondió 400") || msg.contains("respondió 422") || msg.contains("acceso denegado") ->
                 "Credenciales incorrectas. Verifica tu correo y contraseña."
             msg.contains("Email not confirmed", ignoreCase = true) ->
                 "El correo aún no ha sido confirmado. Revisa tu bandeja de entrada."
-            msg.contains("Unable to resolve host", ignoreCase = true) || msg.contains("timeout", ignoreCase = true) ->
+            msg.contains("Unable to resolve host", ignoreCase = true) || msg.contains("timeout", ignoreCase = true) ||
+                msg.contains("error de red") ->
                 "No se pudo conectar con el servidor. Revisa tu conexión a internet."
             else -> msg.ifBlank { "Error al iniciar sesión. Inténtalo de nuevo." }
         }

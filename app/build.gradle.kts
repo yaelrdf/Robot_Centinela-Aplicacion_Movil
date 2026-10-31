@@ -32,8 +32,8 @@ android {
         // minSdk 29: Android 10 (Q) como versión mínima requerida por el proyecto.
         minSdk = 29
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.4.0-beta"
+        versionCode = 4
+        versionName = "0.5.0-beta"
 
         buildConfigField("String", "SUPABASE_URL", "\"${localProperty("supabase.url")}\"")
         buildConfigField(
