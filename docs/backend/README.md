@@ -48,7 +48,7 @@ es un cambio pequeño en `SupabaseTelemetryQueryAdapter` (leer la vista en lugar
    centinela.devEmail=<correo del usuario de prueba>
    centinela.devPassword=<contraseña del usuario de prueba>
    ```
-5. Ejecuta la app (build debug). Entra sola con la cuenta de prueba y muestra "Casa de pruebas".
+5. Ejecuta la app (build debug). En el inicio de sesión, el botón de cuenta de prueba autocompleta el formulario; al entrar muestra "Casa de pruebas".
 
 Nunca uses la clave `service_role` ni una `sb_secret_...` en la app: la app las rechaza al arrancar.
 

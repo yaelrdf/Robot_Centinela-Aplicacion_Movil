@@ -13,9 +13,8 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
    `supabase.publishableKey` (clave **pública**; nunca `service_role` ni `sb_secret_`) y la cuenta de
    prueba `centinela.devEmail` y `centinela.devPassword` (ver `docs/backend/README.md`).
 2. Abre el proyecto en Android Studio (AGP 9.4, SDK de Android 37) y ejecuta `app`.
-3. La app entra sola con la cuenta de prueba (solo debug) y muestra los domicilios. La pantalla de
-   inicio de sesión se integra al final del proyecto (indicación del equipo); RLS exige una sesión
-   para entregar datos, por eso existe la cuenta de prueba.
+3. La app abre en el inicio de sesión (correo y contraseña, recuperación de acceso). En debug, un botón
+   autocompleta la cuenta de prueba. RLS exige una sesión con membresía activa para entregar datos.
 
 ## Pantallas y conexión con el backend
 

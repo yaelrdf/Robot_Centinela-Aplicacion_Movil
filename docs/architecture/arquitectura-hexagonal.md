@@ -97,4 +97,4 @@ adaptadores y deja el resto igual:
 | `TelemetryQueryPort` | `SupabaseTelemetryQueryAdapter` | Mismo adaptador, con `schema_version` y `raw_payload` en la consulta |
 
 `:core` no cambia y no sabe que existe este modo. Es una decisión temporal
-([ADR-007](../decisions/ADR-007-demo-lectura-publica.md)) que se retira cuando exista el inicio de sesión.
+([ADR-007](../decisions/ADR-007-demo-lectura-publica.md)) que se retira cuando exista el usuario de pruebas con membresía (B21).

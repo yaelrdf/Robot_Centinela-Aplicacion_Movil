@@ -121,13 +121,16 @@ con un mensaje claro al usar el backend por primera vez.
 ```bash
 ./gradlew :core:test               # pruebas del dominio y casos de uso (JVM)
 ./gradlew :app:testDebugUnitTest   # pruebas de adaptadores: contrato JSON y configuración
-./gradlew assembleDebug            # APK de depuración (entra con la cuenta de prueba de local.properties)
+./gradlew assembleDebug            # APK de depuración (inicio de sesión con botón de cuenta de prueba)
+./gradlew :app:assembleRelease     # APK con inicio de sesión real (firmado con la clave de depuración)
 ./gradlew :app:assembleDemo        # APK de demostración (lectura pública, sin inicio de sesión)
 ```
 
 ## Demostración beta (build `demo`)
 
-El build `demo` sirve para mostrar la app con datos reales **sin pantalla de inicio de sesión**:
+La app tiene inicio de sesión real con Supabase Auth, pero con el RLS del proyecto una cuenta solo ve datos
+si tiene una membresía activa, y todavía no existe un usuario de pruebas (B21). Mientras tanto, el build
+`demo` sirve para mostrar la app con datos reales **sin pantalla de inicio de sesión**:
 
 - Lee de Supabase solo con la clave pública (`supabase.url` y `supabase.publishableKey`), como el rol
   `anon`. No lleva contraseñas ni cuentas.
@@ -136,7 +139,7 @@ El build `demo` sirve para mostrar la app con datos reales **sin pantalla de ini
 - **Depende de que backend siga permitiendo la lectura anónima (B19).** Si se cierra, el APK deja de
   mostrar datos. Es una solución temporal; ver
   [ADR-007](docs/decisions/ADR-007-demo-lectura-publica.md) y
-  [las notas de versión](docs/releases/v0.3.0-beta-demo.md).
+  las notas de versión ([0.3.0](docs/releases/v0.3.0-beta-demo.md) y [0.4.0](docs/releases/v0.4.0-beta.md)).
 - Con los datos actuales del proyecto (2 frames, del 23 de octubre de 2026) los canales aparecen como
   "atrasados"; alertas y misiones llegan vacías y el mapa sigue "pendiente de backend".
 

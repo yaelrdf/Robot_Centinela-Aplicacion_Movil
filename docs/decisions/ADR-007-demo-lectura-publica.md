@@ -6,8 +6,8 @@
 ## Contexto
 
 - Se necesita un APK instalable para mostrar la app con datos reales de Supabase.
-- La pantalla de inicio de sesión va al final del proyecto (ADR-005) y el usuario de pruebas con
-  membresía activa todavía no existe en el proyecto de Supabase (B21).
+- La pantalla de inicio de sesión ya existe (ADR-006), pero el usuario de pruebas con membresía activa
+  todavía no existe en el proyecto de Supabase (B21): con login real no hay datos que mostrar.
 - El 29 de octubre de 2026 se revisó el proyecto con la clave pública y sin sesión (solo lecturas):
   el rol `anon` lee `homes`, `robots`, `devices`, `channels`, `map_versions`, `telemetry_frames` y sus
   tablas hijas. `memberships`, `device_sessions`, `missions` y `alerts` llegan vacías (RLS o sin datos).
@@ -36,5 +36,5 @@
   el APK deja de mostrar datos. Es el comportamiento correcto y no debe revertirse para sostener la demo.
 - **No resuelve B19.** Distribuir el APK equivale a publicar la telemetría del proyecto, que ya es
   legible con la clave que va dentro de cualquier APK. Debe cerrarse antes de un uso real.
-- **Retiro:** cuando exista el usuario de pruebas con membresía (B21) o el inicio de sesión, se
+- **Retiro:** cuando exista el usuario de pruebas con membresía (B21), se
   elimina el build `demo`, los dos adaptadores `PublicRead*` y la rama `publicRead` del ensamblador.

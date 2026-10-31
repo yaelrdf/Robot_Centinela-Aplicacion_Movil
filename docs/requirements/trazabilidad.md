@@ -38,7 +38,7 @@
 
 | HU | Pantalla o componente | Qué cubre |
 |---|---|---|
-| HU01 | `HomeSelectionScreen` | Selección explícita de domicilio. El inicio de sesión se integra al final (indicación del equipo) |
+| HU01 | `LoginScreen`, `LoginViewModel`, `HomeSelectionScreen` | Inicio de sesión, recuperación de acceso, cierre de sesión y selección explícita de domicilio (ADR-006). Sin usuario con membresía (B21) no se ve ningún domicilio |
 | HU02, HU20 | `MetricCard`, `ChannelDetailSheet`, `ChannelPresentation` | Valor, unidad, calidad visible; ADC sin ppm; raya con "Sin dato", "No instalado", "Calentando", "Falla", "Fuera de rango" |
 | HU03 | `MainViewModel` | Sincronizador iniciado y detenido con el ciclo de vida; sin duplicados en la ruta |
 | HU04 | `MetricCard` | Edad del dato, "Atrasado" con hora exacta, hora aproximada marcada con "≈" |
