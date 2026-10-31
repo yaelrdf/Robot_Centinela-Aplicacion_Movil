@@ -1,7 +1,7 @@
 # Interfaz móvil (Jetpack Compose)
 
 **Fuentes:** `Diseño de Interfaz móvil.pdf` (mockups del equipo de diseño), la guía de interfaces
-(sección 12, identidad *Lunar Base*) y `Historias_de_Usuario_CDA_Corregido.xlsx`.
+(sección 12), el **Manual de identidad corporativa V.I.S.O.R.** ([ADR-008](../decisions/ADR-008-identidad-visor.md)) y `Historias_de_Usuario_CDA_Corregido.xlsx`.
 
 La interfaz vive en `app/src/main/kotlin/com/robotcentinela/app/ui/` y solo habla con los casos de
 uso de `:core` a través de `AppContainer`. No calcula alertas, no convierte ADC a ppm y no inventa
@@ -32,7 +32,7 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
 ## Diferencias con los mockups (y por qué)
 
 - **Sin "Hola, nombre"**: depende del perfil extendido en la BD; el cierre de sesión ya está integrado en Ajustes.
-- **Sin logo**: el equipo todavía no lo define; la app usa el ícono de robot centinela por defecto del sistema.
+- **Logo e ícono:** el isotipo V.I.S.O.R. se vectorizó desde el manual; el ícono del launcher es adaptativo (con capa monocromática) y la bienvenida replica la pág. 27 del manual.
 - **Gráficas de un canal a la vez**: el mockup apila ADC, °C y % en un mismo eje, lo que mezcla
   unidades (§12.5, RNF12). El selector de canal del mockup elige qué se grafica.
 - **Estados como insignias**: el verde "Dato válido" sobre blanco no alcanza el contraste 4.5:1 que
@@ -41,11 +41,12 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
 
 ## Tokens, tipografía y accesibilidad
 
-- **Tokens:** los de la tabla 12.2 están en `ui/theme/CentinelaColors.kt`, con tokens derivados para
+- **Tokens:** los de la tabla 12.2, sobre la paleta oficial V.I.S.O.R. (`VisorPalette`: Black Blue `#041839`, Off White `#EEEEEE`, Navy `#2D4059`, Bright Orange `#FF5722`, validado `#B5D0A2`, alerta `#F7B32D`, crítico `#C00000`), están en `ui/theme/CentinelaColors.kt`, con tokens derivados para
   cumplir el contraste que exige la propia guía.
 - **Poppins con dígitos tabulares:** Poppins no trae `tnum`; se incluye una variante con dígitos de
   ancho fijo (OFL 1.1, `app/OFL-Poppins.txt`) para que lecturas y horas no "bailen".
-- **Íconos:** una sola familia (Material Symbols Rounded, Apache 2.0) como vectores.
+- **Íconos:** los de la marca (pág. 22 del manual, vectorizados) donde existen; para el resto (campana, ajustes, flechas) Material Symbols Rounded (Apache 2.0).
+- **Titulares en Questrial** (OFL 1.1, `app/OFL-Questrial.txt`) y cuerpo en Poppins, como pide el manual (§4.2).
 - **Lectores de pantalla:** cada tarjeta es un solo elemento con descripción completa; gráfica y
   dona de alertas tienen texto alternativo.
 

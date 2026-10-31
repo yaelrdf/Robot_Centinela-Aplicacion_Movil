@@ -38,7 +38,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 
 | # | Pregunta | Supuesto actual |
 |---|---|---|
-| R1 | Método de autenticación de Supabase Auth | **Resuelto:** Autenticación por correo y contraseña implementada con `LoginScreen`, `SignIn`, `SignOut` y `RecoverAccess`. Las compilaciones debug conservan botón para autocompletar la cuenta de prueba de `local.properties` (`DevAccount.kt`). | `LoginScreen.kt`, `LoginViewModel.kt`, `RootViewModel.kt` |
+| R1 | Método de autenticación de Supabase Auth | **Resuelto:** Autenticación por correo y contraseña implementada con `LoginScreen`, `SignIn`, `SignOut` y `RecoverAccess`. Las compilaciones debug conservan botón para autocompletar la cuenta de prueba de `local.properties` (`DevAccount.kt`). Código: `LoginScreen.kt`, `LoginViewModel.kt`, `RootViewModel.kt` |
 | R2 | Valores de `memberships.role` | Se conserva el texto; la app no autoriza por rol |
 | R3 | Dispositivos objetivo (versión mínima de Android) | `minSdk` 29 (Android 10), definido por el equipo |
 | R4 | Validar la interfaz (docs/ui/interfaz-movil.md) contra los mockups móviles | Implementada según `Diseño de Interfaz móvil.pdf` |
@@ -50,7 +50,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 | R9 | El mockup incluye "Generar nueva misión", pero el expediente define la app como de consulta (§1, §7.1). ¿Crear misiones desde la app es un registro de planeación o un comando al robot? ¿Con qué contrato? | La hoja existe, pero "Guardar" no envía nada |
 | R10 | Las gráficas del mockup apilan Gas LP (ADC), metano (ADC), temperatura (°C) y humedad (%) en un mismo eje | Se grafica un canal a la vez, con su unidad (§12.5, RNF12) |
 | R11 | Lecturas "por habitación" del mockup | Dependen del mapa 2D: la app muestra "No disponible / Implementación futura" (ADR-009) |
-| R12 | Logo de la app | Sin ícono propio hasta que el equipo lo defina |
+| R12 | Logo de la app | **Resuelto** con el Manual de identidad corporativa ([ADR-008](decisions/ADR-008-identidad-visor.md)): isotipo V.I.S.O.R., ícono adaptativo y pantalla de bienvenida. Los activos se vectorizaron desde imágenes del PDF; conviene reemplazarlos por los SVG originales del equipo de diseño |
 | R13 | Pantalla de inicio de sesión (RF01, HU01) | **Resuelto** en `dev` (`LoginScreen`, ADR-006). El build `demo` se conserva hasta que exista el usuario de pruebas con membresía (B21); entonces se retira junto con los adaptadores `PublicRead*` (ADR-007) |
 
 ## Para IoT / firmware
