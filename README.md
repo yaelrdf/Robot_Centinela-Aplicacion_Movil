@@ -12,7 +12,7 @@ umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 
 > **Estado:** beta (0.4.0-beta). La app se conecta solo al backend real (Supabase): telemetría, incidentes,
 > misiones y autenticación con Supabase Auth (pantalla de inicio de sesión, recuperación de acceso y cierre
-> de sesión). Los contratos que el servidor aún no publica (archivo del mapa, metadatos de misiones,
+> de sesión). Los contratos que el servidor aún no publica (metadatos de misiones,
 > calibraciones) se muestran como **pendiente de backend** y no se inventan; varios contratos de datos son
 > **provisionales** (ver [docs/pendientes.md](docs/pendientes.md)). Con el RLS actual del proyecto, una cuenta
 > sin membresía activa no ve datos: mientras no exista un usuario de pruebas (B21) existe un build **`demo`**
@@ -28,10 +28,10 @@ umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 | Edad del dato por canal y paso a "atrasado" | HU04 |
 | Historial de frames y alertas con filtro de fechas local convertido a UTC | HU07 |
 | Batería con método ("Porcentaje no disponible" si solo hay voltaje) | HU08 |
-| Pose con incertidumbre e IDs de mapa y misión (sin geometría de mapa) | HU05, HU06 (parcial) |
+| Pose con incertidumbre e IDs de mapa y misión en el dominio; el mapa 2D no se incluye en esta versión | HU05, HU06 (futuro) |
 | Fixtures sintéticos de prueba | HU15 (parcial) |
 | Interfaz Compose según los mockups móviles: Pantalla de Login, Resumen, Mapa, Misiones, Historial, Eventos y Ajustes con tema claro/oscuro y Poppins | HU01 a HU08, HU12, HU20 |
-| Plano por versión de mapa y resumen de misión: contratos provisionales en `:core`, la interfaz muestra estado informativo en ausencia de archivo | HU05, HU06, HU08 |
+| Resumen de misión (contrato provisional en `:core`); el mapa 2D muestra "No disponible / Implementación futura" | HU06, HU08 |
 
 **Fuera de esta versión:** las calibraciones
 detalladas, la exportación CSV, push, video y comandos. La trazabilidad completa está en
@@ -141,7 +141,7 @@ si tiene una membresía activa, y todavía no existe un usuario de pruebas (B21)
   [ADR-007](docs/decisions/ADR-007-demo-lectura-publica.md) y
   las notas de versión ([0.3.0](docs/releases/v0.3.0-beta-demo.md) y [0.4.0](docs/releases/v0.4.0-beta.md)).
 - Con los datos actuales del proyecto (2 frames, del 23 de octubre de 2026) los canales aparecen como
-  "atrasados"; alertas y misiones llegan vacías y el mapa sigue "pendiente de backend".
+  "atrasados"; alertas y misiones llegan vacías y el mapa 2D muestra "No disponible / Implementación futura".
 
 Para compilarlo: JDK 21, `local.properties` con `sdk.dir`, `supabase.url` y `supabase.publishableKey`, y
 `./gradlew :app:assembleDemo`. El APK queda en `app/build/outputs/apk/demo/`.

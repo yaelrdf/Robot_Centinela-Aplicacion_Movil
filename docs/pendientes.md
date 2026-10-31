@@ -49,7 +49,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 | R8 | Catálogo de severidades para el filtro de eventos | `critical`, `warning`, `info` (ligado a B6) |
 | R9 | El mockup incluye "Generar nueva misión", pero el expediente define la app como de consulta (§1, §7.1). ¿Crear misiones desde la app es un registro de planeación o un comando al robot? ¿Con qué contrato? | La hoja existe, pero "Guardar" no envía nada |
 | R10 | Las gráficas del mockup apilan Gas LP (ADC), metano (ADC), temperatura (°C) y humedad (%) en un mismo eje | Se grafica un canal a la vez, con su unidad (§12.5, RNF12) |
-| R11 | Lecturas "por habitación" del mockup | Requieren que el backend asigne lecturas con el plano validado (RB11); la app no lo hace |
+| R11 | Lecturas "por habitación" del mockup | Dependen del mapa 2D: la app muestra "No disponible / Implementación futura" (ADR-009) |
 | R12 | Logo de la app | Sin ícono propio hasta que el equipo lo defina |
 | R13 | Pantalla de inicio de sesión (RF01, HU01) | **Resuelto** en `dev` (`LoginScreen`, ADR-006). El build `demo` se conserva hasta que exista el usuario de pruebas con membresía (B21); entonces se retira junto con los adaptadores `PublicRead*` (ADR-007) |
 
@@ -64,7 +64,7 @@ equipos. Cuando se resuelvan, se actualizan los archivos indicados.
 ## Contratos de dominio pendientes
 
 - **Mapas** (HU05, HU19, RF11, RF32): formato de `map_versions`, habitaciones, estaciones, rutas y
-  Storage privado con URL firmada. **Propuesta provisional:** `FloorPlan` y `FloorPlanPort` (ADR-005).
+  Storage privado con URL firmada. **Fuera de esta versión:** la app muestra "No disponible / Implementación futura" ([ADR-009](decisions/ADR-009-mapa-2d-fuera-de-esta-version.md)); se retiró el modelo provisional `FloorPlan`.
 - **Misiones** (HU06, HU08, RF14, RF33): la lista y el estado ya se leen de `missions`. Faltan
   estaciones previstas, completadas y omitidas con causa, y consumo (B16).
 - **Calibraciones** (HU09, RF20): fecha, método, responsable y vigencia.

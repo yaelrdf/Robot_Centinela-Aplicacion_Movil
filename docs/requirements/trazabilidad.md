@@ -17,8 +17,8 @@
 | HU02 | Señales de gas y calidad | Máxima | RF05, RF06, RF20; RB04 a RB06 | `ReadingInterpreter`, `ReadingQuality`, `DescribeChannelStatus` | `ReadingInterpretationTest`, `DescribeChannelStatusTest`, `TelemetryFrameMapperTest` | 🟡 Semántica completa. La unidad depende del catálogo de capacidades (pendiente) |
 | HU03 | Consistencia web y móvil | Máxima | RF07, RF08, RF09; RB26 a RB28 | `TelemetrySynchronizer`, `SupabaseTelemetryQueryAdapter`, `SupabaseTelemetryChangeNotifier` | `TelemetrySynchronizerTest` | ✅ Los SLO de RNF02 se miden con la UI |
 | HU04 | Edad del dato | Máxima | RF09, RF23; RB19 | `FreshnessPolicy`, `LatestTelemetryProjection`, `DescribeChannelStatus` | `FreshnessPolicyTest`, `LatestTelemetryProjectionTest` | ✅ |
-| HU05 | Mapa de la misión | Máxima | RF11, RF12; RB13 | `MapVersionId`, `TelemetryFrame.mapVersionId` | `TelemetryFrameMapperTest` | 🟡 Se conserva la versión de mapa del frame. La geometría y el listado de estaciones están pendientes |
-| HU06 | Incertidumbre y estaciones | Máxima | RF12, RF13, RF33; RB11, RB16 | `Pose` (incertidumbre; no asigna habitación) | `TelemetryFrameMapperTest` | 🟡 Faltan las estaciones omitidas y su causa (contrato de misiones pendiente) |
+| HU05 | Mapa de la misión | Máxima | RF11, RF12; RB13 | `MapVersionId`, `TelemetryFrame.mapVersionId` | `TelemetryFrameMapperTest` | ➖ El mapa 2D no se incluye en esta versión (implementación futura, IoT; ADR-009). Se conserva la versión de mapa del frame |
+| HU06 | Incertidumbre y estaciones | Máxima | RF12, RF13, RF33; RB11, RB16 | `Pose` (incertidumbre; no asigna habitación) | `TelemetryFrameMapperTest` | ➖ Pose e incertidumbre se conservan en el dominio, pero no se dibujan (ADR-009). Faltan las estaciones omitidas y su causa (contrato de misiones pendiente) |
 | HU07 | Historial por fechas | Máxima | RF10, RF16 | `UtcInterval`, `QueryTelemetryHistory`, `QueryAlertHistory`, `QueryMetricAggregates` | `UtcIntervalTest`, `QueryAlertHistoryTest` | 🟡 Local a UTC y ámbito implementados. Los agregados (mín., máx., prom.) esperan su adaptador |
 | HU08 | Estado de batería | Máxima | RF18, RF14; RB17 | `BatteryInterpretation`, `EvaluateRobotHealth` | `RobotHealthDomainTest` | 🟡 Batería completa. El consumo por misión depende del resumen de misión (pendiente) |
 | HU09 | Validación de calibraciones | Máxima | RF20, RF24, RF34; RB07 | `CalibrationId` en cada lectura | `TelemetryFrameMapperTest` | ⏳ Los detalles de calibración (fecha, responsable, vigencia) esperan su contrato |
@@ -31,7 +31,7 @@
 | HU16 | Notificaciones Push | Media | RF26 | — | — | ⏳ Extensión opcional (Should) |
 | HU17 | Video en LAN | Baja | RF27; RB33 | — | — | ⏳ Extensión opcional (Could) |
 | HU18 | Comandos remotos | Baja | RF28; RB32 | — | — | ⏳ Extensión opcional (Could), detrás de feature flag |
-| HU19 | Reutilización de mapa | Máxima | RF11, RF14, RF33 | — | — | ➖ La validación y el vínculo de mapas los hacen backend e IoT; la consulta espera el contrato de mapas |
+| HU19 | Reutilización de mapa | Máxima | RF11, RF14, RF33 | — | — | ➖ La validación y el vínculo de mapas los hacen backend e IoT; no se incluye en esta versión (ADR-009) |
 | HU20 | Sensores fallidos | Máxima | RF05, RF09, RF23; RB04, RB09 | `ReadingInterpreter` (`Fault`, `Warming`, `OutOfRange`, `NotInstalled`, `NoData`) | `ReadingInterpretationTest` | ✅ Los textos e íconos son de la UI |
 
 ## Interfaz (propuesta Compose)
@@ -42,7 +42,7 @@
 | HU02, HU20 | `MetricCard`, `ChannelDetailSheet`, `ChannelPresentation` | Valor, unidad, calidad visible; ADC sin ppm; raya con "Sin dato", "No instalado", "Calentando", "Falla", "Fuera de rango" |
 | HU03 | `MainViewModel` | Sincronizador iniciado y detenido con el ciclo de vida; sin duplicados en la ruta |
 | HU04 | `MetricCard` | Edad del dato, "Atrasado" con hora exacta, hora aproximada marcada con "≈" |
-| HU05, HU06 | `FloorPlanView`, `MapScreen`, `MissionsScreen` | Trayectoria sobre la versión exacta de mapa; incertidumbre distinta de la huella; estaciones omitidas con causa |
+| HU05, HU06 | `MapScreen`, `FutureFeatureNotice`, `MissionsScreen` | Leyenda "No disponible / Implementación futura" en lugar del mapa; estaciones omitidas con causa en Misiones |
 | HU07 | `HistoryScreen`, `EventsScreen` | Rango local a UTC; alertas por severidad; mín, máx y promedio; gráfica con huecos |
 | HU08 | `OperationCard`, `MissionsScreen` | Voltaje con "Porcentaje no disponible" y método; consumo con método |
 | HU12 | `CentinelaTheme`, `SettingsSheet` | Tema elegido explícitamente, contraste, Poppins con dígitos tabulares |

@@ -9,3 +9,5 @@
 | [ADR-005](ADR-005-interfaz-compose.md) | Interfaz Compose conectada solo al backend real | Aceptada |
 | [ADR-006](ADR-006-autenticacion-e-interfaz-login.md) | Autenticación completa con Supabase Auth e integración de interfaz | Aceptada |
 | [ADR-007](ADR-007-demo-lectura-publica.md) | Demostración beta con lectura pública (sin inicio de sesión) | Aceptada (temporal) |
+| [ADR-008](ADR-008-identidad-visor.md) | Identidad visual V.I.S.O.R. (Manual de identidad corporativa) | Aceptada |
+| [ADR-009](ADR-009-mapa-2d-fuera-de-esta-version.md) | El mapa asistido 2D queda fuera de esta versión | Aceptada |

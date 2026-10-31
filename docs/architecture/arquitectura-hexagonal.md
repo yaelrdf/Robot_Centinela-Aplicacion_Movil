@@ -37,7 +37,7 @@ con su propuesta para `mobile/src/`:
 | `identity` | `identity/` | Sesión, membresías y ámbito de domicilio (RF01, RF02) |
 | `environmentalmonitoring` | `environmental_monitoring/` | Lecturas, calidad, frescura, capacidades y agregados (RF05, RF09, RF10) |
 | `robothealth` | `robot_health/` | Batería, estado reportado e ingesta (RF18, RF19, RNF04) |
-| `homemapping` | `home_mapping/` | Pose e ID de versión de mapa (RF12). La geometría está pendiente |
+| `homemapping` | `home_mapping/` | Pose e ID de versión de mapa (RF12). El mapa 2D no se incluye en esta versión (ADR-009) |
 | `missions` | `missions/` | ID de misión. El resumen (RF14) está pendiente |
 | `incidents` | `incidents/` | Alertas persistidas, de solo lectura (RF15, RF16) |
 | `telemetry` | (agregado del frame) | Frame, `stream_version`, proyección del último dato, sincronización e historial (RF06 a RF08) |
