@@ -158,6 +158,7 @@ Para compilarlo: JDK 21, `local.properties` con `sdk.dir`, `supabase.url` y `sup
 | [docs/pendientes.md](docs/pendientes.md) | Preguntas abiertas para backend, IoT e Ingeniería de Software |
 | [docs/ui/interfaz-movil.md](docs/ui/interfaz-movil.md) | Interfaz móvil: pantallas, conexión con el backend, tokens y accesibilidad |
 | [docs/manual-de-usuario/](docs/manual-de-usuario/) | Manual de usuario (Word y PDF) sobre la hoja membretada de V.I.S.O.R., con capturas reales |
+| [docs/manual-tecnico/](docs/manual-tecnico/) | Manual técnico para desarrolladores (Word y PDF): arquitectura, estructura, conexión con Supabase, tiempo real, diccionario de datos, compatibilidad y guía de mantenimiento |
 
 La documentación de origen del proyecto (expediente técnico, historias de usuario y estructura JSON)
 está en `Documentacion-original/`, que se usa localmente y no se versiona.

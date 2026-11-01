@@ -1,0 +1,26 @@
+digraph G {
+ rankdir=TB;
+
+graph [fontname="Poppins", fontsize=10, fontcolor="#041839", bgcolor="white", pad=0.15, size="6.54,9"];
+node  [fontname="Poppins", fontsize=9.5, fontcolor="#041839", color="#2D4059", style="rounded,filled",
+       fillcolor="#E7ECF3", shape=box, penwidth=1.1, margin="0.14,0.07"];
+edge  [fontname="Poppins", fontsize=8.5, fontcolor="#2D4059", color="#2D4059", arrowsize=0.75, penwidth=1.05];
+
+
+
+    app [label="CentinelaApplication\ncontainerResult (lazy)\nrunCatching { AppContainer.supabase(...) }"];
+    act [label="MainActivity\ninstallSplashScreen() · setContent"];
+    root [label="CentinelaApp(containerResult)"];
+    err [label="ConfigurationError\n(mensaje con la causa)", fillcolor="#FFE9E1", color="#C00000"];
+    vm [label="RootViewModel.state\ncombine(sessionState, scope, choosingHome)"];
+    c [label="Connecting\n(VisorSplash)", fillcolor="white"];
+    l [label="NeedsLogin\nLoginScreen", fillcolor="white"];
+    h [label="ChoosingHome\nHomeSelectionScreen", fillcolor="white"];
+    r [label="Ready(scope)\nMainScreen", fillcolor="#B5D0A2"];
+    app -> act -> root;
+    root -> err [label="falló la\nconfiguración"];
+    root -> vm [label="contenedor\nválido"];
+    vm -> c; vm -> l; vm -> h; vm -> r;
+    {rank=same; c; l; h; r;}
+    
+}

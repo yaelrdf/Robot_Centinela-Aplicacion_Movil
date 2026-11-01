@@ -1,0 +1,33 @@
+digraph G {
+ rankdir=TB;
+
+graph [fontname="Poppins", fontsize=10, fontcolor="#041839", bgcolor="white", pad=0.15, size="6.54,9"];
+node  [fontname="Poppins", fontsize=9.5, fontcolor="#041839", color="#2D4059", style="rounded,filled",
+       fillcolor="#E7ECF3", shape=box, penwidth=1.1, margin="0.14,0.07"];
+edge  [fontname="Poppins", fontsize=8.5, fontcolor="#2D4059", color="#2D4059", arrowsize=0.75, penwidth=1.05];
+
+
+
+    subgraph cluster_app {
+      label=":app  (módulo Android)"; labeljust="l"; style="rounded,filled"; fillcolor="#F7F9FC"; color="#2D4059"; fontname="Questrial"; fontsize=11;
+      ui [label="ui/\nCompose · ViewModels · tema"];
+      shell [label="shell/\nAppContainer · Adapters\nCentinelaApplication"];
+      adapters [label="<dominio>/adapters/supabase\nDTO · consultas · Realtime", fillcolor="#FFE9E1", color="#FF5722"];
+    }
+    subgraph cluster_core {
+      label=":core  (Kotlin/JVM puro: sin Android ni Supabase)"; labeljust="l"; style="rounded,filled"; fillcolor="#F2F7EE"; color="#2D4059"; fontname="Questrial"; fontsize=11;
+      application [label="application\ncasos de uso · TelemetrySynchronizer"];
+      ports [label="ports\ninterfaces que :core necesita"];
+      domain [label="domain\nentidades · reglas puras"];
+    }
+    sdk [label="supabase-kt · Ktor · OkHttp", fillcolor="white", style="rounded,dashed"];
+    ui -> shell [label="usa"];
+    shell -> adapters [label="crea"];
+    shell -> application [label="crea"];
+    application -> ports [label="depende de"];
+    application -> domain;
+    ports -> domain;
+    adapters -> ports [label="implementa", style=dashed, color="#FF5722", fontcolor="#FF5722"];
+    adapters -> sdk;
+    
+}

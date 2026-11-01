@@ -1,0 +1,20 @@
+digraph G {
+ rankdir=TB;
+
+graph [fontname="Poppins", fontsize=10, fontcolor="#041839", bgcolor="white", pad=0.15, size="6.54,9"];
+node  [fontname="Poppins", fontsize=9.5, fontcolor="#041839", color="#2D4059", style="rounded,filled",
+       fillcolor="#E7ECF3", shape=box, penwidth=1.1, margin="0.14,0.07"];
+edge  [fontname="Poppins", fontsize=8.5, fontcolor="#2D4059", color="#2D4059", arrowsize=0.75, penwidth=1.05];
+
+nodesep=0.25; ranksep=0.3;
+
+    node [shape=box];
+    a [label="Supabase\nPostgREST · Realtime"];
+    b [label="Adaptadores\n(:app)"];
+    c [label="TelemetrySynchronizer\nStateFlow<TelemetrySyncState>"];
+    d [label="MainViewModel\ncombine(sync, capacidades, reloj 1 s,\nmisión, alertas)"];
+    e [label="LiveUiState\ntarjetas · batería · conectividad · estado"];
+    f [label="Compose\ncollectAsStateWithLifecycle()", fillcolor="#FF5722", fontcolor="white", color="#FF5722"];
+    a -> b -> c -> d -> e -> f;
+    
+}

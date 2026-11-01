@@ -1,0 +1,24 @@
+digraph G {
+ rankdir=TB;
+
+graph [fontname="Poppins", fontsize=10, fontcolor="#041839", bgcolor="white", pad=0.15, size="6.54,9"];
+node  [fontname="Poppins", fontsize=9.5, fontcolor="#041839", color="#2D4059", style="rounded,filled",
+       fillcolor="#E7ECF3", shape=box, penwidth=1.1, margin="0.14,0.07"];
+edge  [fontname="Poppins", fontsize=8.5, fontcolor="#2D4059", color="#2D4059", arrowsize=0.75, penwidth=1.05];
+
+nodesep=0.25; ranksep=0.4;
+
+    node [shape=box];
+    q1 [label="¿calidad es not_installed,\nwarming, fault u out_of_range?", shape=box, style="filled", fillcolor="white"];
+    q2 [label="¿hay valor?", shape=box, style="filled", fillcolor="white"];
+    q3 [label="¿qué calidad?", shape=box, style="filled", fillcolor="white"];
+    s1 [label="NotInstalled · Warming ·\nFault · OutOfRange\n(mandan sobre el valor)", fillcolor="#F7B32D"];
+    s2 [label="NoData  («Sin dato»)\nnunca 0 ni «aire seguro»", fillcolor="#E7ECF3"];
+    s3 [label="RawSignal\nunidad del catálogo,\nnunca ppm", fillcolor="#B5D0A2"];
+    s4 [label="Measured\nvalor + unidad del catálogo", fillcolor="#B5D0A2"];
+    s5 [label="Uncertain\nse conserva el valor,\nno se afirma validez", fillcolor="#F4B6B6"];
+    q1 -> s1 [label="sí"]; q1 -> q2 [label="no"];
+    q2 -> s2 [label="no"]; q2 -> q3 [label="sí"];
+    q3 -> s3 [label="uncalibrated"]; q3 -> s4 [label="valid /\nestimated"]; q3 -> s5 [label="otra"];
+    
+}

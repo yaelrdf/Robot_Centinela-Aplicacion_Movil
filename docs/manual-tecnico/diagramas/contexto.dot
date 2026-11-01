@@ -1,0 +1,31 @@
+digraph G {
+ rankdir=TB;
+
+graph [fontname="Poppins", fontsize=10, fontcolor="#041839", bgcolor="white", pad=0.15, size="6.54,9"];
+node  [fontname="Poppins", fontsize=9.5, fontcolor="#041839", color="#2D4059", style="rounded,filled",
+       fillcolor="#E7ECF3", shape=box, penwidth=1.1, margin="0.14,0.07"];
+edge  [fontname="Poppins", fontsize=8.5, fontcolor="#2D4059", color="#2D4059", arrowsize=0.75, penwidth=1.05];
+
+nodesep=0.3; ranksep=0.45;
+
+    robot [label="Robot centinela\nESP32 · gases MQ-4/6/7\ntemperatura · humedad\ndistancia · IR de piso", fillcolor="white"];
+    ingest [label="Ingesta\n(fuera de este repositorio)\nvalida el frame v1 y lo guarda", fillcolor="white"];
+    subgraph cluster_sb {
+      label="Supabase (proyecto del equipo)"; labeljust="l"; style="rounded"; color="#2D4059"; fontname="Questrial"; fontsize=11;
+      pg   [label="PostgreSQL\n14 tablas + RLS", fillcolor="#E7ECF3"];
+      rest [label="PostgREST\nconsultas", fillcolor="#E7ECF3"];
+      rt   [label="Realtime\nPostgres Changes", fillcolor="#E7ECF3"];
+      auth [label="Auth\ncorreo y contraseña", fillcolor="#E7ECF3"];
+    }
+    app [label="App V.I.S.O.R.\nAndroid 10+ · solo lectura", fillcolor="#FF5722", fontcolor="white", color="#FF5722"];
+    web [label="Web del equipo\n(otro cliente)", fillcolor="white", style="rounded,dashed"];
+    robot -> ingest [label="frame JSON\ncada ~2 s"];
+    ingest -> pg [label="INSERT"];
+    pg -> rt [label="cambio\nconfirmado", dir=none, style=dashed];
+    app -> auth [label="sesión"];
+    app -> rest [label="GET (RLS)"];
+    rt -> app [label="aviso INSERT\n(no lleva datos)", color="#FF5722", fontcolor="#FF5722"];
+    rest -> pg [dir=none, style=dashed];
+    web -> rest [style=dashed, label="lee"];
+    
+}
