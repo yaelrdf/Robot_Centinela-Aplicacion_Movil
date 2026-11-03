@@ -20,6 +20,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -34,13 +36,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.robotcentinela.app.BuildConfig
 import com.robotcentinela.app.R
+import com.robotcentinela.app.incidents.domain.AlertId
 import com.robotcentinela.app.ui.app.uiDependencies
 import com.robotcentinela.app.ui.components.AppIcon
+import com.robotcentinela.app.ui.notifications.CriticalAlertNotificationPayload
 import com.robotcentinela.app.ui.theme.CentinelaShapes
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 import com.robotcentinela.app.ui.theme.ThemePreference
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.util.UUID
 
 /** Ajustes: tema, domicilio y cierre de sesión (HU01). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +55,7 @@ fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> U
     val deps = uiDependencies
     val colors = CentinelaTheme.colors
     val theme by deps.preferences.theme.collectAsStateWithLifecycle()
+    val criticalPrefs by deps.preferences.criticalAlertPreferences.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
@@ -71,6 +78,59 @@ fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> U
                         selected = option == theme,
                         onSelect = { deps.preferences.setTheme(option) },
                     )
+                }
+            }
+
+            HorizontalDivider(color = colors.border)
+            Text("Alertas Críticas (Nivel High)", style = MaterialTheme.typography.titleSmall)
+            Text(
+                "Señales multimodales y notificación persistente en barra de estado para alertas críticas en primer y segundo plano.",
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.textSecondary,
+            )
+            SwitchRow(
+                label = "Sonido de alarma",
+                checked = criticalPrefs.soundEnabled,
+                onCheckedChange = deps.preferences::setCriticalSoundEnabled,
+            )
+            SwitchRow(
+                label = "Vibración",
+                checked = criticalPrefs.vibrationEnabled,
+                onCheckedChange = deps.preferences::setCriticalVibrationEnabled,
+            )
+            SwitchRow(
+                label = "Flash LED de cámara",
+                checked = criticalPrefs.flashEnabled,
+                onCheckedChange = deps.preferences::setCriticalFlashEnabled,
+            )
+            if (deps.criticalAlertGateway != null) {
+                OutlinedButton(
+                    onClick = {
+                        val now = Instant.now()
+                        val testId = AlertId(UUID.nameUUIDFromBytes("visor-critical-test".toByteArray()))
+                        deps.criticalAlertGateway.showHighPriorityNotification(
+                            CriticalAlertNotificationPayload(
+                                alertId = testId,
+                                title = "Crítica: Señal de gas elevada (Prueba)",
+                                body = "$homeName · Notificación nivel HIGH persistente",
+                                homeName = homeName,
+                                robotCode = "PRUEBA",
+                                originLabel = "Prueba de verificación local",
+                                openedAt = now,
+                                lastSeenAt = now,
+                                persistent = true,
+                                shouldAlertOnce = false,
+                                preferences = criticalPrefs,
+                            ),
+                        )
+                        deps.criticalAlertGateway.triggerSensoryAlert(criticalPrefs)
+                    },
+                    shape = CentinelaShapes.control,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = CentinelaShapes.minTouchTarget),
+                ) {
+                    AppIcon(R.drawable.ic_notifications, tint = colors.textPrimary)
+                    Spacer(Modifier.size(Spacing.s))
+                    Text("Probar alerta crítica (Sonido, Vibración y Flash)")
                 }
             }
 
@@ -159,5 +219,29 @@ private fun RadioRow(label: String, selected: Boolean, onSelect: () -> Unit, des
             Text(label, style = MaterialTheme.typography.bodyMedium)
             description?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary) }
         }
+    }
+}
+
+@Composable
+private fun SwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val colors = CentinelaTheme.colors
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = CentinelaShapes.minTouchTarget)
+            .clip(CentinelaShapes.control)
+            .padding(horizontal = Spacing.s, vertical = Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = colors.onWarning,
+                checkedTrackColor = colors.warning,
+            ),
+        )
     }
 }

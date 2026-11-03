@@ -27,7 +27,7 @@ posiciones ni datos: lo que el backend todavía no expone se muestra como **pend
 | Misiones | Detalles de misión, tarjeta de mapa ("No disponible / Implementación futura"), tarjetas de misiones, "Nueva misión" | `missions` (inicio, fin, estado). Nombre y estaciones: **pendiente** (B16). "Guardar" no envía nada (ver R9) |
 | Historial | Alertas registradas por severidad; "Lectura general" del canal elegido con máxima, mínima y promedio | Alertas y frames históricos de Supabase. Misiones, horas de operación y calibraciones: **pendiente** |
 | Eventos (campana) | Alertas con filtros de periodo, severidad y estado; detalle de cada evento | Supabase: alertas |
-| Ajustes (engrane) | Tema claro, oscuro o del sistema; cambio de domicilio | Local |
+| Ajustes (engrane) | Tema claro, oscuro o del sistema; configuración y prueba de alertas críticas (sonido, vibración, flash LED y notificación persistente nivel `HIGH`); cambio de domicilio y cierre de sesión | Local / Supabase Auth |
 
 ## Diferencias con los mockups (y por qué)
 

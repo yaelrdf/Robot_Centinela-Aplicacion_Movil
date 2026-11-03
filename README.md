@@ -31,6 +31,7 @@ umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 | Pose con incertidumbre e IDs de mapa y misión en el dominio; el mapa 2D no se incluye en esta versión | HU05, HU06 (futuro) |
 | Fixtures sintéticos de prueba | HU15 (parcial) |
 | Interfaz Compose según los mockups móviles: Pantalla de Login, Resumen, Mapa, Misiones, Historial, Eventos y Ajustes con tema claro/oscuro, Poppins y Questrial | HU01 a HU08, HU12, HU20 |
+| Sistema de notificación multimodal para alertas críticas (sonido, vibración y flash LED) con notificación persistente nivel `HIGH` en la barra de estado en primer y segundo plano (compatible de Android 10 API 29 a Android 17 API 37) | HU11, HU12, HU16 |
 | Resumen de misión (contrato provisional en `:core`); el mapa 2D muestra "No disponible / Implementación futura" | HU06, HU08 |
 
 **Fuera de esta versión:** las calibraciones

@@ -30,26 +30,37 @@ import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.components.VisorSplash
 import com.robotcentinela.app.ui.homes.HomeSelectionScreen
 import com.robotcentinela.app.ui.main.MainScreen
+import com.robotcentinela.app.ui.notifications.CriticalAlertGateway
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 
 /** Raíz de la interfaz: tema, dependencias y la pantalla que corresponde a la sesión y al domicilio. */
 @Composable
-fun CentinelaApp(containerResult: Result<AppContainer>, preferences: UiPreferences) {
+fun CentinelaApp(
+    containerResult: Result<AppContainer>,
+    preferences: UiPreferences,
+    criticalAlertGateway: CriticalAlertGateway? = null,
+) {
     val theme by preferences.theme.collectAsStateWithLifecycle()
     CentinelaTheme(preference = theme) {
         val container = containerResult.getOrNull()
         if (container == null) {
             ConfigurationError(containerResult.exceptionOrNull()?.message ?: "Configuración incompleta")
         } else {
-            AppContent(container, preferences)
+            AppContent(container, preferences, criticalAlertGateway)
         }
     }
 }
 
 @Composable
-private fun AppContent(container: AppContainer, preferences: UiPreferences) {
-    val dependencies = remember(container) { UiDependencies(container, preferences) }
+private fun AppContent(
+    container: AppContainer,
+    preferences: UiPreferences,
+    criticalAlertGateway: CriticalAlertGateway?,
+) {
+    val dependencies = remember(container, criticalAlertGateway) {
+        UiDependencies(container, preferences, criticalAlertGateway)
+    }
     CompositionLocalProvider(LocalUiDependencies provides dependencies) {
         val root: RootViewModel = viewModel { RootViewModel(container) }
         val state by root.state.collectAsStateWithLifecycle()

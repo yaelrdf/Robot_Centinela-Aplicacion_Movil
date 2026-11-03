@@ -10,6 +10,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.robotcentinela.app.shell.CentinelaApplication
 import com.robotcentinela.app.ui.app.CentinelaApp
 import com.robotcentinela.app.ui.app.UiPreferences
+import com.robotcentinela.app.ui.notifications.AndroidCriticalAlertNotifier
 
 /**
  * Única actividad. Dibuja de borde a borde respetando las áreas seguras (§12.6). La cabecera y la
@@ -27,8 +28,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val application = application as CentinelaApplication
         val preferences = UiPreferences(this)
+        val criticalAlertNotifier = AndroidCriticalAlertNotifier(this)
         setContent {
-            CentinelaApp(containerResult = application.containerResult, preferences = preferences)
+            CentinelaApp(
+                containerResult = application.containerResult,
+                preferences = preferences,
+                criticalAlertGateway = criticalAlertNotifier,
+            )
         }
     }
 }

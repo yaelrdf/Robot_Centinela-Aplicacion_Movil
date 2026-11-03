@@ -1,5 +1,10 @@
 package com.robotcentinela.app.ui.main
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -36,6 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,10 +49,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -71,6 +79,7 @@ import com.robotcentinela.app.ui.history.HistoryScreen
 import com.robotcentinela.app.ui.map.MapScreen
 import com.robotcentinela.app.ui.missions.MissionsScreen
 import com.robotcentinela.app.ui.model.OperationPresentation
+import com.robotcentinela.app.ui.notifications.CriticalAlertSdkPolicy
 import com.robotcentinela.app.ui.settings.SettingsSheet
 import com.robotcentinela.app.ui.summary.ChannelDetailSheet
 import com.robotcentinela.app.ui.summary.SummaryScreen
@@ -103,11 +112,38 @@ private enum class Tab(val label: String, val icon: Int, val route: Any) {
 @Composable
 fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
     val deps = uiDependencies
-    val vm: MainViewModel = viewModel(key = "main-${scope.home.id.value}") { MainViewModel(deps.container, scope) }
+    val context = LocalContext.current
+    val vm: MainViewModel = viewModel(key = "main-${scope.home.id.value}") {
+        MainViewModel(
+            container = deps.container,
+            scope = scope,
+            criticalAlertGateway = deps.criticalAlertGateway,
+            alertPreferences = deps.preferences.criticalAlertPreferences,
+        )
+    }
     val live by vm.state.collectAsStateWithLifecycle()
     val colors = CentinelaTheme.colors
 
-    // La sincronización solo corre con la pantalla visible (RB28).
+    // En Android 13 (API 33) a Android 17 (API 37) se solicita el permiso de notificaciones en ejecución
+    // para mostrar alertas críticas con prioridad HIGH en la barra de estado.
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = {},
+    )
+    LaunchedEffect(Unit) {
+        if (CriticalAlertSdkPolicy.requiresRuntimeNotificationPermission(Build.VERSION.SDK_INT)) {
+            val granted = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    // La sincronización en vivo corre con la pantalla visible (RB28); el monitoreo de alertas críticas
+    // mantiene la persistencia en segundo plano.
     LifecycleStartEffect(vm) {
         vm.onStart()
         onStopOrDispose { vm.onStop() }

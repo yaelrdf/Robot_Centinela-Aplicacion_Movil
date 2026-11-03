@@ -1,6 +1,6 @@
 # Estado del Proyecto Robot Centinela (Aplicación Móvil)
-**Fecha de corte:** 30 de octubre de 2026  
-**Rama:** `dev`  
+**Fecha de corte:** 3 de noviembre de 2026  
+**Rama:** `main`  
 **Módulos del proyecto:** `:core` (Dominio y puertos puros Kotlin) y `:app` (Adaptadores Android, Jetpack Compose y Supabase)
 
 ---
@@ -9,10 +9,11 @@
 
 Se ha culminado la implementación fundamental y refinamiento de la aplicación móvil de monitoreo ambiental y telemetría para el robot centinela, siguiendo rigurosamente:
 1. **Arquitectura Hexagonal (Puertos y Adaptadores)**: Separación absoluta entre lógica de negocio y reglas de honestidad de datos en `:core`, e infraestructura y presentación en `:app`.
-2. **Sistema de Diseño Lunar Base (§12)**: Tipografía Poppins con variantes tabulares (`tnum`), paleta de colores institucional (modo claro y oscuro), iconografía semántica y redondeo amigable de controles.
+2. **Sistema de Diseño Lunar Base (§12) e Identidad V.I.S.O.R.**: Tipografía Poppins con variantes tabulares (`tnum`) y titulares Questrial, paleta de colores institucional (modo claro y oscuro), iconografía semántica y redondeo amigable de controles.
 3. **Flujo Completo de Autenticación**: Inicio de sesión formal con Supabase Auth (`LoginScreen` / `LoginViewModel`), manejo de sesiones autenticadas, almacenamiento seguro y cierre de sesión.
-4. **Optimización de Rendimiento y Memoria**: Bounding y política de descarte en el canal de eventos de telemetría (`Channel(capacity = 64, DROP_OLDEST)`), caché de primitivas geométricas y objetos `Path` en Canvas (`LineChart`, `FloorPlanView`).
-5. **Adaptabilidad e Interacción**: Responsividad integral para dispositivos móviles compactos y tablets/pantallas anchas (`BoxWithConstraints`), transiciones animadas con `AnimatedContent` y adaptación dinámica a los temas del sistema con interpolación suave (`animateCentinelaColors`).
+4. **Sistema de Notificación Multimodal para Alertas Críticas (ADR-010)**: Señalización mediante **sonido de alarma, vibración y flash LED de cámara**, junto con **notificación persistente (`ongoing`) en la barra de estado de nivel `HIGH` (`IMPORTANCE_HIGH` / `PRIORITY_HIGH`)** cuando la app se encuentra tanto en primer como en segundo plano, compatible desde **Android 10 (`minSdk = 29`) hasta Android 17 (`compileSdk = 37`)**.
+5. **Optimización de Rendimiento y Memoria**: Bounding y política de descarte en el canal de eventos de telemetría (`Channel(capacity = 64, DROP_OLDEST)`), caché de primitivas geométricas y objetos `Path` en Canvas (`LineChart`, `FloorPlanView`).
+6. **Adaptabilidad e Interacción**: Responsividad integral para dispositivos móviles compactos y tablets/pantallas anchas (`BoxWithConstraints`), transiciones animadas con `AnimatedContent` y adaptación dinámica a los temas del sistema con interpolación suave (`animateCentinelaColors`).
 
 ---
 
@@ -31,9 +32,10 @@ A continuación se resume el estado de cumplimiento respecto al expediente técn
 | **HU07 / RF10, RF16** | Historial de telemetría y eventos por rango local/UTC | **Cumplido** ✅ | `HistoryScreen.kt`, `UtcInterval.kt`, `LineChart.kt`. Selectores de rango ("Hoy", "7 días", "Mes"), agregados calculados honestamente (mín, máx, prom) y gráficas con corte en huecos de conexión. |
 | **HU08 / RF18, RF14; RB17** | Monitoreo de batería y estado operativo | **Cumplido** ✅ | `BatteryInterpretation.kt`, `OperationCard.kt`. Voltaje directo; porcentaje solo si hay método documentado (`fuel_gauge`/`voltage_curve`). |
 | **HU09 / RF20, RF24, RF34; RB07** | Validación de calibración de sensores | **Parcial** 🟡 | `CalibrationId` se preserva por lectura. La consulta de vigencia, técnico y método espera el contrato final en backend. |
-| **HU11 / RF15, RF29; RB21-RB24** | Consulta de incidentes y severidades | **Cumplido** ✅ | `EventsScreen.kt`, `AlertRow.kt`, `AlertDetailSheet.kt`. Consulta por filtros de severidad y estado con badge semántico. |
-| **HU12 / RF22, RF23** | Preferencias visuales y modo Claro/Oscuro | **Cumplido** ✅ | `CentinelaTheme.kt`, `SettingsSheet.kt`, `CentinelaShapes.kt`. Soporte de tema Sistema/Claro/Oscuro con persistencia en `DataStore` y animación entre paletas. |
-| **HU15 / RF35; RB29** | Datos de prueba y robustez QA | **Cumplido** ✅ | Fixtures sintéticos en `app/src/test/resources/fixtures/` y suite de pruebas unitarias (`TelemetrySynchronizerTest`, `ReadingInterpretationTest`, etc.). |
+| **HU11 / RF15, RF29; RB21-RB24** | Consulta de incidentes y severidades | **Cumplido** ✅ | `EventsScreen.kt`, `AlertRow.kt`, `AlertDetailSheet.kt`, `CriticalAlertCoordinator.kt`, `AndroidCriticalAlertNotifier.kt`. Consulta por filtros y alerta crítica multimodal. |
+| **HU12 / RF22, RF23** | Preferencias visuales, alertas y modo Claro/Oscuro | **Cumplido** ✅ | `CentinelaTheme.kt`, `SettingsSheet.kt`, `UiPreferences.kt`. Soporte de tema Sistema/Claro/Oscuro y switches de sonido, vibración y flash para alertas críticas. |
+| **HU15 / RF35; RB29** | Datos de prueba y robustez QA | **Cumplido** ✅ | Fixtures sintéticos en `app/src/test/resources/fixtures/` y suite de pruebas unitarias (`TelemetrySynchronizerTest`, `CriticalAlertCoordinatorTest`, etc.). |
+| **HU16 / RF26** | Notificaciones de alerta crítica en barra de estado y segundo plano | **Cumplido** ✅ | `AndroidCriticalAlertNotifier.kt`, `CriticalAlertCoordinator.kt`, `CriticalAlertActionReceiver.kt`. Nivel de alerta `HIGH`, persistente en segundo plano con sonido, vibración y flash (Android 10 API 29 a Android 17 API 37). |
 | **HU20 / RF05, RF09; RB04, RB09** | Detección y despliegue de sensores fallidos | **Cumplido** ✅ | `ReadingInterpreter.kt` categoriza `Fault`, `OutOfRange`, `NotInstalled`. Nunca se declara aire seguro por falta de datos. |
 
 ---

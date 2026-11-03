@@ -11,3 +11,4 @@
 | [ADR-007](ADR-007-demo-lectura-publica.md) | Demostración beta con lectura pública (sin inicio de sesión) | Aceptada (temporal) |
 | [ADR-008](ADR-008-identidad-visor.md) | Identidad visual V.I.S.O.R. (Manual de identidad corporativa) | Aceptada |
 | [ADR-009](ADR-009-mapa-2d-fuera-de-esta-version.md) | El mapa asistido 2D queda fuera de esta versión | Aceptada |
+| [ADR-010](ADR-010-notificaciones-alertas-criticas-multimodales.md) | Sistema de notificación multimodal (sonido, vibración y flash) y persistencia en segundo plano (Android 10 a 17) | Aceptada |

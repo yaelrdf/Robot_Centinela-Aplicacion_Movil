@@ -27,6 +27,10 @@ import com.robotcentinela.app.ui.model.MetricCardModel
 import com.robotcentinela.app.ui.model.OperationPresentation
 import com.robotcentinela.app.ui.model.RangePreset
 import com.robotcentinela.app.ui.model.StatusLabel
+import com.robotcentinela.app.ui.notifications.CriticalAlertCoordinator
+import com.robotcentinela.app.ui.notifications.CriticalAlertDismissBus
+import com.robotcentinela.app.ui.notifications.CriticalAlertGateway
+import com.robotcentinela.app.ui.notifications.CriticalAlertPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -111,7 +115,12 @@ private data class AlertExtras(
  * - [PENDIENTE DE CONTRATO DEL ROBOT]: Missions (misiones de patrullaje),
  *   cuyos puertos aún no cuentan con tablas ni endpoints desplegados en el backend/robot.
  */
-class MainViewModel(private val container: AppContainer, private val scope: HomeScope) : ViewModel() {
+class MainViewModel(
+    private val container: AppContainer,
+    private val scope: HomeScope,
+    criticalAlertGateway: CriticalAlertGateway? = null,
+    private val alertPreferences: StateFlow<CriticalAlertPreferences> = MutableStateFlow(CriticalAlertPreferences()),
+) : ViewModel() {
 
     private val zone: ZoneId = scope.home.timezone
     private fun today(): LocalDate = LocalDate.now(container.clock.withZone(zone))
@@ -124,10 +133,41 @@ class MainViewModel(private val container: AppContainer, private val scope: Home
     private val alertsPanel = MutableStateFlow(AlertsPanelState())
     private val openAlerts = MutableStateFlow<List<Alert>>(emptyList())
     private val dismissedAlerts = MutableStateFlow<Set<AlertId>>(emptySet())
+    private val inBackground = MutableStateFlow(false)
 
+    private val criticalCoordinator = criticalAlertGateway?.let { CriticalAlertCoordinator(it) }
     private var synchronizer: TelemetrySynchronizer? = null
     private var sessionJobs: List<Job> = emptyList()
+    private var alertPollingJob: Job? = null
     private var started = false
+
+    init {
+        viewModelScope.launch {
+            CriticalAlertDismissBus.dismissEvents.collect { alertId ->
+                dismissBanner(alertId)
+            }
+        }
+        viewModelScope.launch {
+            combine(
+                openAlerts,
+                dismissedAlerts,
+                inBackground,
+                selectedRobot,
+                alertPreferences,
+            ) { open, dismissed, bg, robot, prefs ->
+                 {
+                    criticalCoordinator?.evaluate(
+                        openAlerts = open,
+                        dismissedIds = dismissed,
+                        homeName = scope.home.name,
+                        robotCode = robot?.publicCode,
+                        inBackground = bg,
+                        preferences = prefs,
+                    )
+                }
+            }.collect { action -> action() }
+        }
+    }
 
     private val ticker = flow {
         while (true) {
@@ -153,30 +193,54 @@ class MainViewModel(private val container: AppContainer, private val scope: Home
     // --- Ciclo de vida -------------------------------------------------------------------------
 
     fun onStart() {
+        inBackground.value = false
         if (started) return
         started = true
         val robot = selectedRobot.value ?: return
         startSession(robot)
+        ensureAlertPolling(robot)
     }
 
     fun onStop() {
+        inBackground.value = true
         if (!started) return
         started = false
+        // Se detiene el stream de telemetría en vivo (RB28), pero el sondeo de alertas críticas
+        // continúa en segundo plano para mantener la notificación persistente de nivel HIGH.
         stopSession()
     }
 
     fun selectRobot(robot: Robot) {
         if (robot.id == selectedRobot.value?.id) return
         stopSession()
+        alertPollingJob?.cancel()
+        alertPollingJob = null
+        criticalCoordinator?.clear()
         synchronizer = null
         syncState.value = TelemetrySyncState()
         mission.value = null
         selectedRobot.value = robot
+        ensureAlertPolling(robot)
         if (started) startSession(robot)
     }
 
     override fun onCleared() {
         stopSession()
+        alertPollingJob?.cancel()
+        alertPollingJob = null
+        criticalCoordinator?.clear()
+    }
+
+    private fun ensureAlertPolling(robot: Robot) {
+        if (alertPollingJob?.isActive == true) return
+        alertPollingJob = viewModelScope.launch {
+            alertRange.collectLatest {
+                while (true) {
+                    refreshAlerts(robot)
+                    delay(30_000)
+                }
+            }
+        }
     }
 
     private fun startSession(robot: Robot) {
@@ -195,14 +259,6 @@ class MainViewModel(private val container: AppContainer, private val scope: Home
                 while (true) {
                     refreshMission(robot, missionId)
                     delay(10_000)
-                }
-            }
-        }
-        jobs += viewModelScope.launch {
-            alertRange.collectLatest {
-                while (true) {
-                    refreshAlerts(robot)
-                    delay(30_000)
                 }
             }
         }
@@ -230,7 +286,10 @@ class MainViewModel(private val container: AppContainer, private val scope: Home
         alertRange.value = range
     }
 
-    fun dismissBanner(id: AlertId) = dismissedAlerts.update { it + id }
+    fun dismissBanner(id: AlertId) {
+        dismissedAlerts.update { it + id }
+        criticalCoordinator?.onAlertDismissed(id)
+    }
 
     fun retryAlerts() {
         val robot = selectedRobot.value ?: return

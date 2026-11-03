@@ -4,7 +4,16 @@
     <!-- Necesario para consultar Supabase (Auth, PostgREST y Realtime). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Sin permiso de notificaciones: push (HU16) es una extensión opcional fuera de esta versión. -->
+    <!-- Permisos para el sistema de notificación de alertas críticas (sonido, vibración, flash y barra de estado nivel HIGH),
+         compatibles desde Android 10 (API 29) hasta Android 17 (API 37). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
+
     <application
         android:name=".shell.CentinelaApplication"
         android:allowBackup="false"
@@ -17,6 +26,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Centinela.Starting"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -24,6 +34,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".ui.notifications.CriticalAlertActionReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
