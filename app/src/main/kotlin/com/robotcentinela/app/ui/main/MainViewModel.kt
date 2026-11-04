@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -91,6 +92,8 @@ data class LiveUiState(
     val canResolve: Boolean = false,
     val resolvingIds: Set<AlertId> = emptySet(),
     val resolveFeedback: ResolveFeedback? = null,
+    /** Refresco manual en curso (deslizar hacia abajo en Resumen). */
+    val pullRefreshing: Boolean = false,
 )
 
 private data class LiveCore(
@@ -101,6 +104,7 @@ private data class LiveCore(
 
 private data class Extras(
     val mission: MissionSummary?,
+    val pullRefreshing: Boolean,
 )
 
 private data class AlertExtras(
@@ -146,6 +150,7 @@ class MainViewModel(
     private val resolvingAlerts = MutableStateFlow<Set<AlertId>>(emptySet())
     private val resolveFeedback = MutableStateFlow<ResolveFeedback?>(null)
     private val inBackground = MutableStateFlow(false)
+    private val pullRefreshing = MutableStateFlow(false)
 
     private val criticalCoordinator = criticalAlertGateway?.let { CriticalAlertCoordinator(it, canResolve = container.resolveAlert != null) }
     private var synchronizer: TelemetrySynchronizer? = null
@@ -196,7 +201,7 @@ class MainViewModel(
     }
 
     private val core = combine(syncState, capabilities, ticker) { sync, caps, now -> LiveCore(sync, caps, now) }
-    private val extras = mission.map { Extras(it) }
+    private val extras = combine(mission, pullRefreshing) { m, p -> Extras(m, p) }
     private val alertExtras = combine(
         alertRange, alertsPanel, openAlerts, dismissedAlerts, combine(resolvingAlerts, resolveFeedback) { r, f -> r to f },
     ) { range, panel, open, dismissed, resolve ->
@@ -341,6 +346,27 @@ class MainViewModel(
         resolveFeedback.value = null
     }
 
+    /**
+     * Refresco inmediato de Resumen (deslizar hacia abajo): telemetría, alertas y misión a la vez, sin esperar al
+     * aviso de Realtime ni a los sondeos de 10 s y 30 s.
+     */
+    fun refreshNow() {
+        val robot = selectedRobot.value ?: return
+        if (pullRefreshing.value) return
+        pullRefreshing.value = true
+        viewModelScope.launch {
+            try {
+                coroutineScope {
+                    launch { synchronizer?.refreshNow() }
+                    launch { refreshAlerts(robot) }
+                    launch { refreshMission(robot, syncState.value.projection.latestFrame?.missionId) }
+                }
+            } finally {
+                pullRefreshing.value = false
+            }
+        }
+    }
+
     fun retryAlerts() {
         val robot = selectedRobot.value ?: return
         viewModelScope.launch { refreshAlerts(robot) }
@@ -427,6 +453,7 @@ class MainViewModel(
             canResolve = container.resolveAlert != null,
             resolvingIds = a.resolving,
             resolveFeedback = a.feedback,
+            pullRefreshing = e.pullRefreshing,
         )
     }
 }

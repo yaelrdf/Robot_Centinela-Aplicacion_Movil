@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
@@ -58,6 +60,9 @@ class TelemetrySynchronizer(
 
     private val recentFrameIds = RecentFrameIds(config.dedupeWindow)
     private var job: Job? = null
+
+    /** Evita que el refresco manual y el ciclo de sincronización apliquen frames a la vez. */
+    private val syncMutex = Mutex()
 
     /** Inicia (o reanuda) la sincronización en [scope]. No hace nada si ya está en curso. */
     fun start(scope: CoroutineScope) {
@@ -119,7 +124,18 @@ class TelemetrySynchronizer(
         }
     }
 
-    private suspend fun synchronize() {
+    /**
+     * Refresco inmediato pedido por la persona (deslizar hacia abajo): consulta ya los frames pendientes en lugar
+     * de esperar el siguiente aviso o la reconciliación periódica. Si la suscripción estaba caída, conserva ese
+     * estado: un refresco manual exitoso no demuestra que el canal en vivo se haya recuperado (RB28).
+     */
+    suspend fun refreshNow() {
+        val before = state.value.status
+        synchronize()
+        if (before is SyncStatus.Offline && state.value.status == SyncStatus.Live) setStatus(before)
+    }
+
+    private suspend fun synchronize() = syncMutex.withLock {
         try {
             val status = state.value.status
             if (status != SyncStatus.Live && status != SyncStatus.Connecting) {

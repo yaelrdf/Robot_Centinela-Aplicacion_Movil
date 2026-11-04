@@ -298,6 +298,7 @@ private fun MainNavHost(
                 onOpenAlert = onOpenAlert,
                 onRetryAlerts = vm::retryAlerts,
                 onResolveAlert = onResolveAlert,
+                onRefresh = vm::refreshNow,
             )
         }
         composable<MapRoute> {

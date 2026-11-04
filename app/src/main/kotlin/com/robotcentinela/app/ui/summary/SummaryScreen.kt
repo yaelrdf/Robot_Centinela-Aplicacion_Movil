@@ -18,9 +18,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +52,12 @@ import com.robotcentinela.app.ui.model.RangePreset
 import com.robotcentinela.app.ui.theme.CentinelaTheme
 import com.robotcentinela.app.ui.theme.Spacing
 
-/** Resumen del domicilio (propuesta móvil §12.4.2, HU02, HU04, HU08). */
+/**
+ * Resumen del domicilio (propuesta móvil §12.4.2, HU02, HU04, HU08).
+ *
+ * Deslizar hacia abajo ([onRefresh]) actualiza al momento lecturas, alertas y misión.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryScreen(
     live: LiveUiState,
@@ -58,9 +67,26 @@ fun SummaryScreen(
     onOpenAlert: (Alert) -> Unit,
     onRetryAlerts: () -> Unit,
     onResolveAlert: ((Alert) -> Unit)? = null,
+    onRefresh: () -> Unit = {},
 ) {
     val colors = CentinelaTheme.colors
+    val pullState = rememberPullToRefreshState()
 
+    PullToRefreshBox(
+        isRefreshing = live.pullRefreshing,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize(),
+        state = pullState,
+        indicator = {
+            PullToRefreshDefaults.Indicator(
+                state = pullState,
+                isRefreshing = live.pullRefreshing,
+                modifier = Modifier.align(Alignment.TopCenter),
+                containerColor = colors.surface,
+                color = colors.primary,
+            )
+        },
+    ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val columns = if (maxWidth >= 600.dp) 4 else 2
         val isWide = maxWidth >= 760.dp
@@ -117,6 +143,7 @@ fun SummaryScreen(
                 color = colors.textSecondary,
             )
         }
+    }
     }
 }
 

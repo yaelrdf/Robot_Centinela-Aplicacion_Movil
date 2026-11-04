@@ -176,8 +176,48 @@ object OperationPresentation {
         "flame_detected" -> "Flama detectada"
         "smoke_detected" -> "Humo detectado"
         "obstacle_blocked" -> "Obstáculo bloqueante"
-        else -> type.replace('_', ' ').replaceFirstChar { it.uppercase() }
+        // Tipos que reporta el firmware del robot y el simulador del equipo (database-test.py).
+        "gas_mq6" -> "Gas LP detectado (MQ-6)"
+        "gas_mq4" -> "Gas metano detectado (MQ-4)"
+        "gas_mq7" -> "Monóxido de carbono detectado (MQ-7)"
+        "gas_emergency_hold" -> "Robot detenido por emergencia de gas"
+        "robot_flipped" -> "Robot volcado"
+        "robot_trapped" -> "Robot atascado"
+        "cliff_front" -> "Desnivel al frente"
+        "cliff_rear" -> "Desnivel detrás"
+        "cliff_front_escape" -> "Maniobra de escape de desnivel frontal"
+        "cliff_rear_escape" -> "Maniobra de escape de desnivel trasero"
+        "sensor_dht_fault", "dht_fault" -> "Falla del sensor de temperatura y humedad (DHT22)"
+        "sensor_error" -> "Error de sensor"
+        "ultrasonic_evasion" -> "Evasión de obstáculo"
+        else -> translateUnknownType(type)
     }
+
+    /**
+     * Respaldo para tipos que todavía no tienen texto propio: traduce palabra por palabra en lugar de mostrar el
+     * identificador en inglés. Lo que no está en el diccionario se conserva tal cual.
+     */
+    private fun translateUnknownType(type: String): String {
+        val words = type.lowercase().split('_', '-', ' ').filter { it.isNotBlank() }
+        if (words.isEmpty()) return "Alerta"
+        return words.joinToString(" ") { TYPE_WORDS[it] ?: it }.replaceFirstChar { it.uppercase() }
+    }
+
+    private val TYPE_WORDS = mapOf(
+        "gas" to "gas", "robot" to "robot", "sensor" to "sensor", "battery" to "batería", "low" to "baja",
+        "high" to "alta", "critical" to "crítica", "fault" to "falla", "error" to "error", "failure" to "falla",
+        "front" to "frontal", "rear" to "trasero", "left" to "izquierdo", "right" to "derecho", "lateral" to "lateral",
+        "floor" to "piso", "cliff" to "desnivel", "obstacle" to "obstáculo", "detected" to "detectado",
+        "lost" to "perdida", "stopped" to "detenido", "stuck" to "atascado", "trapped" to "atascado",
+        "flipped" to "volcado", "escape" to "escape", "emergency" to "emergencia", "hold" to "detención",
+        "temperature" to "temperatura", "humidity" to "humedad", "motor" to "motor", "motors" to "motores",
+        "wheel" to "rueda", "connection" to "conexión", "connectivity" to "conectividad", "offline" to "sin conexión",
+        "timeout" to "tiempo agotado", "mission" to "misión", "station" to "estación", "skipped" to "omitida",
+        "calibration" to "calibración", "pending" to "pendiente", "signal" to "señal", "smoke" to "humo",
+        "flame" to "flama", "fire" to "fuego", "fall" to "caída", "edge" to "borde", "risk" to "riesgo",
+        "system" to "sistema", "ultrasonic" to "ultrasónico", "evasion" to "evasión", "ir" to "infrarrojo",
+        "leak" to "fuga", "warning" to "advertencia", "alert" to "alerta",
+    )
 
     // --- Misiones ---------------------------------------------------------------------------
 
