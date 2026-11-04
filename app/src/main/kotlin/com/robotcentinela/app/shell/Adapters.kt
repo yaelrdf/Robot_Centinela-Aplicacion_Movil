@@ -9,7 +9,10 @@ import com.robotcentinela.app.identity.adapters.supabase.SupabaseAuthAdapter
 import com.robotcentinela.app.identity.adapters.supabase.SupabaseHomeScopeAdapter
 import com.robotcentinela.app.identity.ports.AuthPort
 import com.robotcentinela.app.identity.ports.HomeScopePort
+import com.robotcentinela.app.incidents.adapters.supabase.SupabaseAlertCommandAdapter
 import com.robotcentinela.app.incidents.adapters.supabase.SupabaseAlertQueryAdapter
+import com.robotcentinela.app.incidents.adapters.supabase.SupabaseDemoAlertCommandAdapter
+import com.robotcentinela.app.incidents.ports.AlertCommandPort
 import com.robotcentinela.app.incidents.ports.AlertQueryPort
 import com.robotcentinela.app.missions.adapters.supabase.SupabaseMissionQueryAdapter
 import com.robotcentinela.app.missions.ports.MissionQueryPort
@@ -34,6 +37,8 @@ class Adapters(
     val telemetryQuery: TelemetryQueryPort,
     val telemetryNotifier: TelemetryChangeNotifier,
     val alertQuery: AlertQueryPort,
+    /** Cierre de alertas (ADR-011). `null` si el origen no lo ofrece: la interfaz oculta el botón. */
+    val alertCommand: AlertCommandPort? = null,
     // Capacidades (tabla `channels`) y misiones (tabla `missions`) ya tienen adaptador.
     // [PENDIENTE DE CONTRATO REAL]: agregados métricos aún no cuentan con
     // tablas publicadas en el backend. Se mantienen como null para indicar explícitamente a la UI el
@@ -50,9 +55,15 @@ class Adapters(
          *
          * Con [publicRead] (build `demo`) no hay inicio de sesión: la app lee solo con la clave pública, como
          * el rol `anon`. Solo cambian la sesión, el ámbito de domicilio y las columnas de telemetría;
-         * el resto de los adaptadores y todo `:core` son los mismos.
+         * el resto de los adaptadores y todo `:core` son los mismos. [demoWriteKey] (solo demo, ADR-011) habilita
+         * el cierre de alertas sin sesión.
          */
-        fun supabase(config: SupabaseConfig, scope: CoroutineScope, publicRead: Boolean = false): Adapters {
+        fun supabase(
+            config: SupabaseConfig,
+            scope: CoroutineScope,
+            publicRead: Boolean = false,
+            demoWriteKey: String? = null,
+        ): Adapters {
             val client = SupabaseClientFactory.create(config)
             return Adapters(
                 auth = if (publicRead) PublicReadAuthAdapter() else SupabaseAuthAdapter(client, scope),
@@ -60,6 +71,14 @@ class Adapters(
                 telemetryQuery = SupabaseTelemetryQueryAdapter(client, publicRead),
                 telemetryNotifier = SupabaseTelemetryChangeNotifier(client),
                 alertQuery = SupabaseAlertQueryAdapter(client),
+                alertCommand = when {
+                    !publicRead -> SupabaseAlertCommandAdapter(client)
+                    // Demo: solo con la clave de escritura temporal; sin ella, el botón no aparece.
+                    demoWriteKey != null -> SupabaseDemoAlertCommandAdapter(
+                        SupabaseClientFactory.createDemoWriter(config.url, demoWriteKey),
+                    )
+                    else -> null
+                },
                 capabilities = SupabaseCapabilitiesAdapter(client),
                 missions = SupabaseMissionQueryAdapter(client),
             )

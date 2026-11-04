@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.robotcentinela.app.R
 import com.robotcentinela.app.identity.domain.Robot
 import com.robotcentinela.app.incidents.domain.Alert
+import com.robotcentinela.app.incidents.domain.AlertId
 import com.robotcentinela.app.ui.app.uiDependencies
 import com.robotcentinela.app.ui.components.EmptyState
 import com.robotcentinela.app.ui.components.ErrorState
@@ -35,7 +36,14 @@ import com.robotcentinela.app.ui.theme.Spacing
 import java.time.ZoneId
 
 @Composable
-fun EventsScreen(robot: Robot, zone: ZoneId, onOpenAlert: (Alert) -> Unit, onChangeHome: () -> Unit) {
+fun EventsScreen(
+    robot: Robot,
+    zone: ZoneId,
+    onOpenAlert: (Alert) -> Unit,
+    onChangeHome: () -> Unit,
+    onResolveAlert: ((Alert) -> Unit)? = null,
+    resolvingIds: Set<AlertId> = emptySet(),
+) {
     val deps = uiDependencies
     val vm: EventsViewModel = viewModel {
         EventsViewModel(
@@ -99,7 +107,12 @@ fun EventsScreen(robot: Robot, zone: ZoneId, onOpenAlert: (Alert) -> Unit, onCha
                 else -> Column {
                     state.alerts.forEachIndexed { index, alert ->
                         if (index > 0) HorizontalDivider(color = colors.border)
-                        AlertRow(alert, zone, vm.todayDate, onClick = { onOpenAlert(alert) })
+                        AlertRow(
+                            alert, zone, vm.todayDate,
+                            onClick = { onOpenAlert(alert) },
+                            onResolve = onResolveAlert,
+                            resolving = alert.id in resolvingIds,
+                        )
                     }
                 }
             }

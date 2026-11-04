@@ -10,7 +10,7 @@ persistió. **No controla el robot**: el inicio, la pausa y la parada son locale
 autoridad de seguridad (expediente §1, §7.1). Tampoco calcula alertas: **la lógica de alertas, los
 umbrales y la histéresis viven en la base de datos**. La app solo los lee.
 
-> **Estado:** beta (0.5.0-beta), identidad visual V.I.S.O.R. La app se conecta solo al backend real (Supabase): telemetría, incidentes,
+> **Estado:** beta (0.7.0-beta), identidad visual V.I.S.O.R. La app se conecta solo al backend real (Supabase): telemetría, incidentes,
 > misiones y autenticación con Supabase Auth (pantalla de inicio de sesión, recuperación de acceso y cierre
 > de sesión). Los contratos que el servidor aún no publica (metadatos de misiones,
 > calibraciones) se muestran como **pendiente de backend** y no se inventan; varios contratos de datos son
@@ -140,7 +140,7 @@ si tiene una membresía activa, y todavía no existe un usuario de pruebas (B21)
 - **Depende de que backend siga permitiendo la lectura anónima (B19).** Si se cierra, el APK deja de
   mostrar datos. Es una solución temporal; ver
   [ADR-007](docs/decisions/ADR-007-demo-lectura-publica.md) y
-  las notas de versión ([0.3.0](docs/releases/v0.3.0-beta-demo.md), [0.4.0](docs/releases/v0.4.0-beta.md) y [0.5.0](docs/releases/v0.5.0-beta.md)).
+  las notas de versión ([0.3.0](docs/releases/v0.3.0-beta-demo.md), [0.4.0](docs/releases/v0.4.0-beta.md), [0.5.0](docs/releases/v0.5.0-beta.md) y [0.7.0](docs/releases/v0.7.0-beta.md)).
 - Con los datos actuales del proyecto (2 frames, del 23 de octubre de 2026) los canales aparecen como
   "atrasados"; alertas y misiones llegan vacías y el mapa 2D muestra "No disponible / Implementación futura".
 

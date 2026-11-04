@@ -5,6 +5,7 @@
 | `esquema-supabase-equipo.sql` | Copia de referencia del esquema que compartió el equipo (21 de octubre de 2026), sin cambios | Backend |
 | `propuesta-politicas-lectura.sql` | **Propuesta**: políticas RLS de solo lectura por membresía activa, índices y Realtime | Backend (revisar y aplicar) |
 | `propuesta-vista-telemetry-frames-v1.sql` | **Propuesta**: corrección de la vista `telemetry_frames_v1` que compartió el equipo (seguridad y campos faltantes) | Backend (revisar y aplicar) |
+| `migracion-resolver-alerta.sql` | Función `resolve_alert(uuid)`: cierra una alerta (solo técnico del domicilio). **Ya aplicada** al proyecto «S.A.F.E. Bot» el 3 de noviembre de 2026; ver [ADR-011](../decisions/ADR-011-resolver-alertas-desde-la-app.md) | Backend (reaplicar en otros proyectos) |
 | `datos-de-prueba.sql` | Un domicilio, un robot, una misión, el catálogo de canales, 30 frames y 2 alertas para probar la app | Quien prueba, en un proyecto de pruebas |
 
 ## Por qué hacen falta las políticas

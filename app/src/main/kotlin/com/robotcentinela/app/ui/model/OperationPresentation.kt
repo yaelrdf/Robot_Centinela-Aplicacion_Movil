@@ -209,6 +209,13 @@ object OperationPresentation {
         else -> "Ocurrió un error inesperado. Inténtalo de nuevo."
     }
 
+    /** Mensaje al fallar el cierre de una alerta (ADR-011): distingue el permiso de rol técnico. */
+    fun resolveErrorMessage(error: Throwable): String = when (error) {
+        is AccessDeniedException -> "Solo un técnico del domicilio puede resolver alertas, o tu sesión venció."
+        is NotInScopeException -> "Abre V.I.S.O.R. y elige el domicilio para resolver la alerta."
+        else -> errorMessage(error)
+    }
+
     /** `true` si el error es de permisos: la interfaz ofrece volver al selector de domicilio (§12.5). */
     fun isPermissionError(error: Throwable): Boolean = error is AccessDeniedException || error is NotInScopeException
 }

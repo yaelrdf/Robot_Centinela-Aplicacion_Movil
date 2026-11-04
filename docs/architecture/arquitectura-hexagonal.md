@@ -82,7 +82,9 @@ Los mensajes nunca incluyen payloads ni cuerpos de respuesta (RNF19).
 - La autorización real la aplica el servidor (RLS). Las comprobaciones del cliente (`CurrentHomeScope`)
   solo evitan consultas fuera de ámbito; ocultar botones no protege nada (RNF09).
 - La app solo acepta la clave pública de Supabase y una URL HTTPS (`SupabaseConfig`, RNF08).
-- La app no escribe telemetría, configuración ni alertas (RB25).
+- La app no escribe telemetría ni configuración. Lo único que escribe es el cierre de una alerta mediante
+  `resolve_alert`, que solo ejecuta un técnico del domicilio ([ADR-011](../decisions/ADR-011-resolver-alertas-desde-la-app.md); RB25).
+- La clave de escritura del demo (`DEMO_WRITE_KEY`) es una excepción temporal: solo existe en el APK `demo` y se revoca al terminar la demostración.
 
 ## Modo de lectura pública (build `demo`)
 

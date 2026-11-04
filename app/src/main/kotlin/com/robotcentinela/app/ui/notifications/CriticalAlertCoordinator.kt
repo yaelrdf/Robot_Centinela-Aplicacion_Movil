@@ -1,5 +1,6 @@
 package com.robotcentinela.app.ui.notifications
 
+import com.robotcentinela.app.identity.domain.RobotId
 import com.robotcentinela.app.incidents.domain.Alert
 import com.robotcentinela.app.incidents.domain.AlertId
 import com.robotcentinela.app.incidents.domain.AlertState
@@ -41,6 +42,10 @@ data class CriticalAlertNotificationPayload(
      */
     val shouldAlertOnce: Boolean,
     val preferences: CriticalAlertPreferences,
+    /** Robot de la alerta; la acción «Resolver alerta» de la notificación lo necesita para validar el ámbito. */
+    val robotId: RobotId? = null,
+    /** `true` si esta sesión puede resolver alertas (ADR-011): la notificación añade la acción «Resolver alerta». */
+    val canResolve: Boolean = false,
 )
 
 /**
@@ -87,6 +92,19 @@ object CriticalAlertDismissBus {
 }
 
 /**
+ * Bus que avisa de que una alerta se resolvió en el servidor (ADR-011), venga de la interfaz o de la acción de la
+ * notificación. `MainViewModel` y `EventsViewModel` lo escuchan para recargar sus listas.
+ */
+object AlertResolvedBus {
+    private val _resolvedEvents = MutableSharedFlow<AlertId>(extraBufferCapacity = 8)
+    val resolvedEvents: SharedFlow<AlertId> = _resolvedEvents.asSharedFlow()
+
+    fun emitResolved(alertId: AlertId) {
+        _resolvedEvents.tryEmit(alertId)
+    }
+}
+
+/**
  * Coordinador de alertas críticas con soporte de sonido, vibración, flash y persistencia en
  * segundo plano mediante notificación de nivel `HIGH`.
  *
@@ -104,6 +122,8 @@ object CriticalAlertDismissBus {
  */
 class CriticalAlertCoordinator(
     private val gateway: CriticalAlertGateway,
+    /** `true` si la sesión puede resolver alertas; habilita la acción en la notificación (ADR-011). */
+    private val canResolve: Boolean = false,
 ) {
     private var lastNotifiedAlertId: AlertId? = null
     private var lastNotifiedSeenAt: Instant? = null
@@ -160,6 +180,8 @@ class CriticalAlertCoordinator(
                 persistent = true,
                 shouldAlertOnce = !shouldTriggerSensory,
                 preferences = preferences,
+                robotId = candidate.robotId,
+                canResolve = canResolve,
             )
 
             gateway.showHighPriorityNotification(payload)

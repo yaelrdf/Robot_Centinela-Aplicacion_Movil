@@ -9,6 +9,7 @@ import com.robotcentinela.app.incidents.domain.AlertState
 import com.robotcentinela.app.shared.PageRequest
 import com.robotcentinela.app.ui.model.DateRange
 import com.robotcentinela.app.ui.model.RangePreset
+import com.robotcentinela.app.ui.notifications.AlertResolvedBus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +68,8 @@ class EventsViewModel(
 
     init {
         load()
+        // Tras resolver una alerta (desde Eventos, el resumen o la notificación) la lista se recarga.
+        viewModelScope.launch { AlertResolvedBus.resolvedEvents.collect { load() } }
     }
 
     fun setRange(range: DateRange) = refilter { it.copy(range = range) }

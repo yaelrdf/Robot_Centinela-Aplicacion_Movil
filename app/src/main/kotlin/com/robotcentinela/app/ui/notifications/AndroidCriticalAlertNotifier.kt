@@ -117,7 +117,12 @@ class AndroidCriticalAlertNotifier(
         val expandedText = buildString {
             append(payload.body)
             append("\nLa alerta permanece activa en el servidor. ")
-            append("Toca para abrir V.I.S.O.R. o usa «Silenciar aviso» para descartar la señal.")
+            if (payload.canResolve) {
+                append("Toca para abrir V.I.S.O.R., usa «Silenciar aviso» para descartar la señal ")
+                append("o «Resolver alerta» para cerrarla en el servidor.")
+            } else {
+                append("Toca para abrir V.I.S.O.R. o usa «Silenciar aviso» para descartar la señal.")
+            }
         }
 
         val builder = NotificationCompat.Builder(appContext, CHANNEL_ID)
@@ -139,6 +144,22 @@ class AndroidCriticalAlertNotifier(
                 "Silenciar aviso",
                 dismissPendingIntent,
             )
+
+        val robotId = payload.robotId
+        if (payload.canResolve && robotId != null) {
+            val resolveIntent = Intent(appContext, CriticalAlertActionReceiver::class.java).apply {
+                action = CriticalAlertActionReceiver.ACTION_RESOLVE_CRITICAL_ALERT
+                putExtra(CriticalAlertActionReceiver.EXTRA_ALERT_ID, payload.alertId.value.toString())
+                putExtra(CriticalAlertActionReceiver.EXTRA_ROBOT_ID, robotId.value.toString())
+            }
+            val resolvePendingIntent = PendingIntent.getBroadcast(
+                appContext,
+                REQUEST_CODE_RESOLVE_ALERT,
+                resolveIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            builder.addAction(R.drawable.ic_check_circle, "Resolver alerta", resolvePendingIntent)
+        }
 
         if (payload.preferences.vibrationEnabled) {
             builder.setVibrate(CRITICAL_VIBRATION_PATTERN)
@@ -265,6 +286,7 @@ class AndroidCriticalAlertNotifier(
 
         private const val REQUEST_CODE_OPEN_APP = 101
         private const val REQUEST_CODE_DISMISS_ALERT = 102
+        private const val REQUEST_CODE_RESOLVE_ALERT = 103
         private const val CRITICAL_COLOR_ARGB = 0xFFC00000.toInt()
         private const val SOUND_DURATION_MS = 3_500L
         private const val FLASH_PULSES = 4

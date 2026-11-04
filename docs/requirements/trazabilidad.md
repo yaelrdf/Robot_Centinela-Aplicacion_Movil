@@ -23,7 +23,7 @@
 | HU08 | Estado de batería | Máxima | RF18, RF14; RB17 | `BatteryInterpretation`, `EvaluateRobotHealth` | `RobotHealthDomainTest` | 🟡 Batería completa. El consumo por misión depende del resumen de misión (pendiente) |
 | HU09 | Validación de calibraciones | Máxima | RF20, RF24, RF34; RB07 | `CalibrationId` en cada lectura | `TelemetryFrameMapperTest` | ⏳ Los detalles de calibración (fecha, responsable, vigencia) esperan su contrato |
 | HU10 | Confirmación MQTT / IoT | Máxima | RF03, RF04, RF30; RB02, RB03 | — | — | ➖ Firmware y puente de ingesta |
-| HU11 | Correlación de reportes | Máxima | RF15, RF29; RB21 a RB24 | `Alert` (solo lectura), `SupabaseAlertQueryAdapter`, `CriticalAlertCoordinator`, `AndroidCriticalAlertNotifier` | `QueryAlertHistoryTest`, `CriticalAlertCoordinatorTest` | ✅ La correlación vive en la BD; la app consulta incidentes y dispara alerta crítica multimodal (sonido, vibración, flash y notificación `HIGH` persistente en 2.º plano, ADR-010) |
+| HU11 | Correlación de reportes | Máxima | RF15, RF29; RB21 a RB24 | `Alert`, `SupabaseAlertQueryAdapter`, `ResolveAlert` + `SupabaseAlertCommandAdapter` (cierre, ADR-011), `CriticalAlertCoordinator`, `AndroidCriticalAlertNotifier` | `QueryAlertHistoryTest`, `CriticalAlertCoordinatorTest` | ✅ La correlación vive en la BD; la app consulta incidentes y dispara alerta crítica multimodal (sonido, vibración, flash y notificación `HIGH` persistente en 2.º plano, ADR-010) |
 | HU12 | Preferencias visuales UI | Máxima | RF22, RF23 | `ui/theme` (tokens claro/oscuro, `ThemePreference`, `CentinelaShapes`), `SettingsSheet`, `LoginScreen` | `PresentationTest`, `CriticalAlertCoordinatorTest` | ✅ Paletas claro/oscuro, preferencias de alertas críticas (sonido/vibración/flash), Poppins tabular y adaptabilidad móvil/tablet |
 | HU13 | Exportación de reportes | Media | RF21 | — | — | ⏳ Prioridad Should; el formato del CSV y su origen no están definidos |
 | HU14 | Auditoría técnica | Máxima | RF24, RF25 | — | — | ➖ Herramientas técnicas separadas (RF24); los dashboards de consulta no editan |
@@ -64,7 +64,7 @@ Pruebas de la interfaz: `PresentationTest` (reglas de presentación) y `Provisio
 | RB20: misma semántica en web y móvil | Reglas en `:core`, independientes de la plataforma |
 | RB21: estados open, acknowledged y resolved | `AlertState` |
 | RB24: origen device_reported | `AlertOrigin` |
-| RB25: el lector no modifica | Solo hay puertos de lectura |
+| RB25: el lector no modifica | Puertos de lectura; la única escritura es `AlertCommandPort.resolve` (ADR-011, rol técnico) |
 | RB26: Realtime es aviso, no historial | `TelemetryChangeNotifier` + `TelemetryQueryPort` |
 | RB27: cursor de commit por robot | `StreamVersion` |
 | RB28: segundo plano no es "en vivo" | `SyncStatus.Stopped`, `Reconciling` |

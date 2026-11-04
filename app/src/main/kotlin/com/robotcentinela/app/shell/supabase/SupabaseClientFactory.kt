@@ -28,4 +28,14 @@ object SupabaseClientFactory {
             install(Postgrest)
             install(Realtime)
         }
+
+    /**
+     * Cliente solo para escribir alertas en el demo (ADR-011). Lleva una clave con permisos de escritura que
+     * únicamente existe en el APK `demo` y se revoca al terminar la demostración. No instala Auth ni Realtime.
+     */
+    fun createDemoWriter(url: String, writeKey: String): SupabaseClient =
+        createSupabaseClient(supabaseUrl = url, supabaseKey = writeKey) {
+            defaultSerializer = KotlinXSerializer(json)
+            install(Postgrest)
+        }
 }

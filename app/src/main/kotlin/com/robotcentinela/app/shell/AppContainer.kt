@@ -13,6 +13,7 @@ import com.robotcentinela.app.identity.application.SignOut
 import com.robotcentinela.app.identity.domain.RobotId
 import com.robotcentinela.app.identity.ports.AuthPort
 import com.robotcentinela.app.incidents.application.QueryAlertHistory
+import com.robotcentinela.app.incidents.application.ResolveAlert
 import com.robotcentinela.app.missions.application.GetMissionSummary
 import com.robotcentinela.app.missions.application.ListMissions
 import com.robotcentinela.app.robothealth.application.EvaluateRobotHealth
@@ -59,6 +60,9 @@ class AppContainer(
     val selectHomeScope = SelectHomeScope(adapters.homeScope, currentHomeScope)
     val queryTelemetryHistory = QueryTelemetryHistory(telemetryQuery, currentHomeScope)
     val queryAlertHistory = QueryAlertHistory(adapters.alertQuery, currentHomeScope)
+
+    /** Cierre de alertas (ADR-011); `null` si el origen de datos no lo permite. */
+    val resolveAlert = adapters.alertCommand?.let { ResolveAlert(it, currentHomeScope) }
     val describeChannelStatus = DescribeChannelStatus(freshnessPolicy, clock)
     val evaluateRobotHealth = EvaluateRobotHealth(ingestConnectivityPolicy, freshnessPolicy, clock)
 
@@ -87,6 +91,7 @@ class AppContainer(
             config: SupabaseConfig,
             clock: Clock = Clock.systemUTC(),
             publicRead: Boolean = false,
-        ): AppContainer = AppContainer(Adapters.supabase(config, applicationScope(), publicRead), clock)
+            demoWriteKey: String? = null,
+        ): AppContainer = AppContainer(Adapters.supabase(config, applicationScope(), publicRead, demoWriteKey), clock)
     }
 }

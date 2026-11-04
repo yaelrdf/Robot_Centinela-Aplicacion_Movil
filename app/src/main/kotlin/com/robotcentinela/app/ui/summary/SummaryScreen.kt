@@ -57,6 +57,7 @@ fun SummaryScreen(
     onOpenEvents: () -> Unit,
     onOpenAlert: (Alert) -> Unit,
     onRetryAlerts: () -> Unit,
+    onResolveAlert: ((Alert) -> Unit)? = null,
 ) {
     val colors = CentinelaTheme.colors
 
@@ -103,11 +104,11 @@ fun SummaryScreen(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.l),
                 ) {
                     MapCard(Modifier.weight(1f).fillMaxHeight())
-                    EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts, Modifier.weight(1f).fillMaxHeight())
+                    EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts, onResolveAlert, Modifier.weight(1f).fillMaxHeight())
                 }
             } else {
                 MapCard()
-                EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts)
+                EventsCard(live, onOpenEvents, onOpenAlert, onRetryAlerts, onResolveAlert)
             }
 
             Text(
@@ -159,6 +160,7 @@ private fun EventsCard(
     onOpenEvents: () -> Unit,
     onOpenAlert: (Alert) -> Unit,
     onRetry: () -> Unit,
+    onResolveAlert: ((Alert) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val colors = CentinelaTheme.colors
@@ -181,7 +183,14 @@ private fun EventsCard(
             )
             else -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 panel.alerts.forEach { alert ->
-                    AlertRow(alert = alert, zone = live.zone, today = live.today, onClick = { onOpenAlert(alert) })
+                    AlertRow(
+                        alert = alert,
+                        zone = live.zone,
+                        today = live.today,
+                        onClick = { onOpenAlert(alert) },
+                        onResolve = onResolveAlert,
+                        resolving = alert.id in live.resolvingIds,
+                    )
                 }
             }
         }

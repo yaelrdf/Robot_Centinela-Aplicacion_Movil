@@ -25,7 +25,7 @@ import java.util.UUID
  * Adaptador de solo lectura de [AlertQueryPort] sobre la tabla `alerts` (§13.2).
  *
  * La base de datos genera las alertas, aplica los umbrales y correlaciona los incidentes
- * (requisito del proyecto, HU11). La app nunca escribe en esta tabla (RB25).
+ * (requisito del proyecto, HU11). Este adaptador nunca escribe: el cierre de alertas está en [SupabaseAlertCommandAdapter] (ADR-011).
  */
 class SupabaseAlertQueryAdapter(private val supabase: SupabaseClient) : AlertQueryPort {
 

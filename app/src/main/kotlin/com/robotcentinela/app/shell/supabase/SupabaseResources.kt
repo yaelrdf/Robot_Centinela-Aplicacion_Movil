@@ -37,6 +37,9 @@ object SupabaseResources {
     /** Misiones (RF14). */
     const val MISSIONS = "missions"
 
+    /** Función RPC que resuelve una alerta; solo la ejecuta un técnico del domicilio (ADR-011). */
+    const val RPC_RESOLVE_ALERT = "resolve_alert"
+
     /** Columnas usadas en filtros y orden. */
     object Columns {
         const val ID = "id"
@@ -51,5 +54,6 @@ object SupabaseResources {
         const val TYPE = "type"
         const val SEVERITY = "severity"
         const val STATE = "state"
+        const val RESOLVED_AT = "resolved_at"
     }
 }

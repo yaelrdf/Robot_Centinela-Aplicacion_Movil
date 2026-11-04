@@ -27,6 +27,7 @@ import com.robotcentinela.app.ui.model.MetricCardModel
 import com.robotcentinela.app.ui.model.OperationPresentation
 import com.robotcentinela.app.ui.model.RangePreset
 import com.robotcentinela.app.ui.model.StatusLabel
+import com.robotcentinela.app.ui.notifications.AlertResolvedBus
 import com.robotcentinela.app.ui.notifications.CriticalAlertCoordinator
 import com.robotcentinela.app.ui.notifications.CriticalAlertDismissBus
 import com.robotcentinela.app.ui.notifications.CriticalAlertGateway
@@ -57,6 +58,9 @@ data class AlertsPanelState(
     val error: String? = null,
 )
 
+/** Resultado del último intento de resolver una alerta; la interfaz lo muestra y luego lo descarta. */
+data class ResolveFeedback(val text: String, val isError: Boolean)
+
 /** Estado en vivo que comparten Resumen y el aviso persistente de alertas. */
 data class LiveUiState(
     val robot: Robot?,
@@ -83,6 +87,10 @@ data class LiveUiState(
     val alertRange: DateRange,
     val alerts: AlertsPanelState = AlertsPanelState(),
     val bannerAlert: Alert? = null,
+    /** `true` si esta sesión puede cerrar alertas (ADR-011); en el demo sin clave de escritura es `false`. */
+    val canResolve: Boolean = false,
+    val resolvingIds: Set<AlertId> = emptySet(),
+    val resolveFeedback: ResolveFeedback? = null,
 )
 
 private data class LiveCore(
@@ -100,6 +108,8 @@ private data class AlertExtras(
     val panel: AlertsPanelState,
     val open: List<Alert>,
     val dismissed: Set<AlertId>,
+    val resolving: Set<AlertId>,
+    val feedback: ResolveFeedback?,
 )
 
 /**
@@ -133,9 +143,11 @@ class MainViewModel(
     private val alertsPanel = MutableStateFlow(AlertsPanelState())
     private val openAlerts = MutableStateFlow<List<Alert>>(emptyList())
     private val dismissedAlerts = MutableStateFlow<Set<AlertId>>(emptySet())
+    private val resolvingAlerts = MutableStateFlow<Set<AlertId>>(emptySet())
+    private val resolveFeedback = MutableStateFlow<ResolveFeedback?>(null)
     private val inBackground = MutableStateFlow(false)
 
-    private val criticalCoordinator = criticalAlertGateway?.let { CriticalAlertCoordinator(it) }
+    private val criticalCoordinator = criticalAlertGateway?.let { CriticalAlertCoordinator(it, canResolve = container.resolveAlert != null) }
     private var synchronizer: TelemetrySynchronizer? = null
     private var sessionJobs: List<Job> = emptyList()
     private var alertPollingJob: Job? = null
@@ -145,6 +157,13 @@ class MainViewModel(
         viewModelScope.launch {
             CriticalAlertDismissBus.dismissEvents.collect { alertId ->
                 dismissBanner(alertId)
+            }
+        }
+        viewModelScope.launch {
+            // Una alerta resuelta desde la notificación o desde otra pantalla: se retira el aviso y se recarga.
+            AlertResolvedBus.resolvedEvents.collect { alertId ->
+                dismissBanner(alertId)
+                selectedRobot.value?.let { refreshAlerts(it) }
             }
         }
         viewModelScope.launch {
@@ -178,8 +197,10 @@ class MainViewModel(
 
     private val core = combine(syncState, capabilities, ticker) { sync, caps, now -> LiveCore(sync, caps, now) }
     private val extras = mission.map { Extras(it) }
-    private val alertExtras = combine(alertRange, alertsPanel, openAlerts, dismissedAlerts) { range, panel, open, dismissed ->
-        AlertExtras(range, panel, open, dismissed)
+    private val alertExtras = combine(
+        alertRange, alertsPanel, openAlerts, dismissedAlerts, combine(resolvingAlerts, resolveFeedback) { r, f -> r to f },
+    ) { range, panel, open, dismissed, resolve ->
+        AlertExtras(range, panel, open, dismissed, resolve.first, resolve.second)
     }
 
     val state: StateFlow<LiveUiState> = combine(core, extras, alertExtras, selectedRobot) { c, e, a, robot ->
@@ -291,6 +312,35 @@ class MainViewModel(
         criticalCoordinator?.onAlertDismissed(id)
     }
 
+    /**
+     * Resuelve [alert] en el servidor (ADR-011). Al terminar bien se silencia el aviso, se retira la notificación y se
+     * avisa por [AlertResolvedBus] para que Eventos recargue; [onSuccess] deja a la pantalla cerrar su detalle.
+     */
+    fun resolveAlert(alert: Alert, onSuccess: () -> Unit = {}) {
+        val resolve = container.resolveAlert ?: return
+        if (alert.id in resolvingAlerts.value) return
+        resolvingAlerts.update { it + alert.id }
+        resolveFeedback.value = null
+        viewModelScope.launch {
+            try {
+                resolve(alert.robotId, alert.id)
+                AlertResolvedBus.emitResolved(alert.id)
+                resolveFeedback.value = ResolveFeedback("Alerta resuelta.", isError = false)
+                onSuccess()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                resolveFeedback.value = ResolveFeedback(OperationPresentation.resolveErrorMessage(e), isError = true)
+            } finally {
+                resolvingAlerts.update { it - alert.id }
+            }
+        }
+    }
+
+    fun clearResolveFeedback() {
+        resolveFeedback.value = null
+    }
+
     fun retryAlerts() {
         val robot = selectedRobot.value ?: return
         viewModelScope.launch { refreshAlerts(robot) }
@@ -374,6 +424,9 @@ class MainViewModel(
             alertRange = a.range,
             alerts = a.panel,
             bannerAlert = a.open.firstOrNull { OperationPresentation.isHighSeverity(it) && it.id !in a.dismissed },
+            canResolve = container.resolveAlert != null,
+            resolvingIds = a.resolving,
+            resolveFeedback = a.feedback,
         )
     }
 }

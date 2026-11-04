@@ -38,6 +38,8 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -75,6 +77,8 @@ import com.robotcentinela.app.ui.components.AppIcon
 import com.robotcentinela.app.ui.components.EmptyState
 import com.robotcentinela.app.ui.events.AlertDetailSheet
 import com.robotcentinela.app.ui.events.EventsScreen
+import com.robotcentinela.app.ui.events.ResolveAlertDialog
+import com.robotcentinela.app.ui.events.isResolvable
 import com.robotcentinela.app.ui.history.HistoryScreen
 import com.robotcentinela.app.ui.map.MapScreen
 import com.robotcentinela.app.ui.missions.MissionsScreen
@@ -154,6 +158,19 @@ fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
     var selectedChannel by remember { mutableStateOf<ChannelKey?>(null) }
     var selectedAlert by remember { mutableStateOf<Alert?>(null) }
 
+    // Resolver alertas (ADR-011): todos los botones piden confirmación aquí y delegan en el ViewModel.
+    val snackbar = remember { SnackbarHostState() }
+    var pendingResolve by remember { mutableStateOf<Alert?>(null) }
+    val requestResolve: ((Alert) -> Unit)? = if (live.canResolve) { alert -> pendingResolve = alert } else null
+    val feedback = live.resolveFeedback
+    // Con el detalle abierto el error se muestra dentro de la hoja; en el resto de los casos, en un aviso breve.
+    LaunchedEffect(feedback, selectedAlert == null) {
+        if (feedback != null && selectedAlert == null) {
+            snackbar.showSnackbar(feedback.text)
+            vm.clearResolveFeedback()
+        }
+    }
+
     BoxWithConstraints(Modifier.fillMaxSize().background(colors.background)) {
         val wide = maxWidth >= 840.dp
         Row(Modifier.fillMaxSize()) {
@@ -175,6 +192,7 @@ fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
                     )
                 },
                 bottomBar = { if (!wide && live.robot != null) BottomBar(navController) },
+                snackbarHost = { SnackbarHost(snackbar) },
             ) { padding ->
                 Column(Modifier.padding(padding).fillMaxSize()) {
                     AnimatedVisibility(
@@ -189,6 +207,8 @@ fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
                                 onAction = { selectedAlert = alert },
                                 critical = true,
                                 onDismiss = { vm.dismissBanner(alert.id) },
+                                secondaryLabel = if (requestResolve != null && alert.isResolvable()) "Resolver" else null,
+                                onSecondary = { requestResolve?.invoke(alert) },
                             )
                         }
                     }
@@ -209,6 +229,7 @@ fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
                             onOpenChannel = { selectedChannel = it },
                             onOpenAlert = { selectedAlert = it },
                             onChangeHome = onChangeHome,
+                            onResolveAlert = requestResolve,
                         )
                     }
                 }
@@ -228,7 +249,25 @@ fun MainScreen(scope: HomeScope, onChangeHome: () -> Unit) {
         ChannelDetailSheet(status = channelStatus, zone = live.zone, onDismiss = { selectedChannel = null })
     }
     selectedAlert?.let { alert ->
-        AlertDetailSheet(alert = alert, zone = live.zone, today = live.today, onDismiss = { selectedAlert = null })
+        AlertDetailSheet(
+            alert = alert,
+            zone = live.zone,
+            today = live.today,
+            onDismiss = { selectedAlert = null; vm.clearResolveFeedback() },
+            onResolve = requestResolve,
+            resolving = alert.id in live.resolvingIds,
+            error = feedback?.takeIf { it.isError }?.text,
+        )
+    }
+    pendingResolve?.let { alert ->
+        ResolveAlertDialog(
+            alert = alert,
+            onConfirm = {
+                pendingResolve = null
+                vm.resolveAlert(alert) { if (selectedAlert?.id == alert.id) selectedAlert = null }
+            },
+            onDismiss = { pendingResolve = null },
+        )
     }
 }
 
@@ -240,6 +279,7 @@ private fun MainNavHost(
     onOpenChannel: (ChannelKey) -> Unit,
     onOpenAlert: (Alert) -> Unit,
     onChangeHome: () -> Unit,
+    onResolveAlert: ((Alert) -> Unit)?,
 ) {
     val robot = live.robot ?: return
     NavHost(
@@ -257,6 +297,7 @@ private fun MainNavHost(
                 onOpenEvents = { navController.navigateTab(EventsRoute) },
                 onOpenAlert = onOpenAlert,
                 onRetryAlerts = vm::retryAlerts,
+                onResolveAlert = onResolveAlert,
             )
         }
         composable<MapRoute> {
@@ -273,7 +314,14 @@ private fun MainNavHost(
             HistoryScreen(robot = robot, zone = live.zone, onChangeHome = onChangeHome)
         }
         composable<EventsRoute> {
-            EventsScreen(robot = robot, zone = live.zone, onOpenAlert = onOpenAlert, onChangeHome = onChangeHome)
+            EventsScreen(
+                robot = robot,
+                zone = live.zone,
+                onOpenAlert = onOpenAlert,
+                onChangeHome = onChangeHome,
+                onResolveAlert = onResolveAlert,
+                resolvingIds = live.resolvingIds,
+            )
         }
     }
 }
@@ -408,6 +456,8 @@ private fun Banner(
     onAction: () -> Unit,
     critical: Boolean,
     onDismiss: (() -> Unit)? = null,
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     val colors = CentinelaTheme.colors
     val container = if (critical) colors.critical else colors.warning
@@ -423,6 +473,9 @@ private fun Banner(
     ) {
         AppIcon(if (critical) R.drawable.ic_error else R.drawable.ic_warning, tint = content)
         Text(text, style = MaterialTheme.typography.bodySmall, color = content, modifier = Modifier.weight(1f))
+        if (secondaryLabel != null) {
+            TextButton(onClick = onSecondary, shape = CentinelaShapes.control) { Text(secondaryLabel, color = content) }
+        }
         TextButton(onClick = onAction, shape = CentinelaShapes.control) { Text(actionLabel, color = content) }
         if (onDismiss != null) {
             IconButton(onClick = onDismiss) {

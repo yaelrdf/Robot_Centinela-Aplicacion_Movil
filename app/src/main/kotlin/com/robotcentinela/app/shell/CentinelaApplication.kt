@@ -14,6 +14,13 @@ class CentinelaApplication : Application() {
 
     /** Contenedor, o el error de configuración que impide crearlo. */
     val containerResult: Result<AppContainer> by lazy {
-        runCatching { AppContainer.supabase(SupabaseConfig.fromBuildConfig(), publicRead = BuildConfig.DEMO_PUBLIC_READ) }
+        runCatching {
+            AppContainer.supabase(
+                SupabaseConfig.fromBuildConfig(),
+                publicRead = BuildConfig.DEMO_PUBLIC_READ,
+                // Solo el APK demo la lleva (ADR-011); en debug y release es una cadena vacía.
+                demoWriteKey = if (BuildConfig.DEMO_PUBLIC_READ) BuildConfig.DEMO_WRITE_KEY.trim().ifEmpty { null } else null,
+            )
+        }
     }
 }

@@ -81,7 +81,8 @@ sealed interface AlertOrigin {
  *
  * **La app no calcula alertas.** La lógica, los umbrales y la histéresis viven en la base de datos
  * (requisito del proyecto, RB22, RB23). Una condición sostenida es un solo incidente con varias
- * ocurrencias, no una fila por frame (HU11, RB22). La app solo consulta el resultado.
+ * ocurrencias, no una fila por frame (HU11, RB22). La app consulta el resultado; lo único que puede
+ * escribir es el cierre manual de una alerta ([com.robotcentinela.app.incidents.ports.AlertCommandPort], ADR-011).
  *
  * @property type tipo de alerta. El catálogo no está documentado, así que se conserva el texto.
  * @property severity severidad. El catálogo no está documentado, así que se conserva el texto.

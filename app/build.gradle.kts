@@ -10,7 +10,8 @@ plugins {
 }
 
 // Configuración local de Supabase. Se lee de local.properties, que está en .gitignore.
-// Solo se admite la clave PÚBLICA (anon/publishable). Nunca service_role (expediente §7.3, RNF08).
+// Solo se admite la clave PÚBLICA (anon/publishable) para leer. Nunca service_role (expediente §7.3, RNF08).
+// Excepción temporal del demo: `demo.write.key` solo llega al build `demo` y se revoca al terminar (ADR-011).
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
@@ -32,8 +33,8 @@ android {
         // minSdk 29: Android 10 (Q) como versión mínima requerida por el proyecto.
         minSdk = 29
         targetSdk = 36
-        versionCode = 4
-        versionName = "0.5.0-beta"
+        versionCode = 6
+        versionName = "0.7.0-beta"
 
         buildConfigField("String", "SUPABASE_URL", "\"${localProperty("supabase.url")}\"")
         buildConfigField(
@@ -43,6 +44,8 @@ android {
         )
         // Solo el build `demo` lo activa: lectura con la clave pública, sin inicio de sesión.
         buildConfigField("boolean", "DEMO_PUBLIC_READ", "false")
+        // Clave de escritura temporal del demo (ADR-011): vacía salvo en el build `demo`.
+        buildConfigField("String", "DEMO_WRITE_KEY", "\"\"")
     }
 
     // La cuenta de PRUEBA (centinela.devEmail/devPassword) solo autocompleta el formulario de inicio de
@@ -71,6 +74,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             versionNameSuffix = "-demo"
             buildConfigField("boolean", "DEMO_PUBLIC_READ", "true")
+            // Sale de local.properties (no versionado) y se revoca al terminar la demo (ADR-011).
+            // `-PdemoKeyless` compila un demo SIN la clave (el que puede publicarse), aunque local.properties la tenga.
+            val demoWriteKey = if (project.hasProperty("demoKeyless")) "" else localProperty("demo.write.key")
+            buildConfigField("String", "DEMO_WRITE_KEY", javaString(demoWriteKey))
         }
     }
 
