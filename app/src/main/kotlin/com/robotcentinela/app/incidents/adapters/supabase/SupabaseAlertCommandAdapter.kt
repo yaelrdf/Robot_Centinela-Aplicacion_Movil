@@ -48,7 +48,9 @@ class SupabaseDemoAlertCommandAdapter(private val supabase: SupabaseClient) : Al
             .update(
                 buildJsonObject {
                     put(Columns.STATE, "resolved")
+                    // Igual que el script de simulación (database-test.py, resolve()).
                     put(Columns.RESOLVED_AT, Instant.now().toString())
+                    put(Columns.LAST_SEEN_AT, Instant.now().toString())
                 },
             ) {
                 select(PostgrestColumns.raw(Columns.ID))

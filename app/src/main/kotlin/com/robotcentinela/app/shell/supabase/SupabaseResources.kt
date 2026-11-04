@@ -55,5 +55,6 @@ object SupabaseResources {
         const val SEVERITY = "severity"
         const val STATE = "state"
         const val RESOLVED_AT = "resolved_at"
+        const val LAST_SEEN_AT = "last_seen_at"
     }
 }

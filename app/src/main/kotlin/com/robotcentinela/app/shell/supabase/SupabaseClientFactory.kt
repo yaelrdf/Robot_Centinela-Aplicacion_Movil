@@ -21,10 +21,15 @@ object SupabaseClientFactory {
     /** Los cambios aditivos del contrato v1 no rompen la app (§14.2): se ignoran claves desconocidas. */
     val json = Json { ignoreUnknownKeys = true }
 
-    fun create(config: SupabaseConfig): SupabaseClient =
+    /**
+     * [withAuth] = false (build `demo`) no instala Auth: el demo es siempre el rol `anon` y así no puede reutilizar
+     * una sesión guardada por otro build con el mismo `applicationId` y firma, que cambiaría el rol y, por RLS,
+     * dejaría la lista de domicilios vacía.
+     */
+    fun create(config: SupabaseConfig, withAuth: Boolean = true): SupabaseClient =
         createSupabaseClient(supabaseUrl = config.url, supabaseKey = config.publishableKey) {
             defaultSerializer = KotlinXSerializer(json)
-            install(Auth)
+            if (withAuth) install(Auth)
             install(Postgrest)
             install(Realtime)
         }

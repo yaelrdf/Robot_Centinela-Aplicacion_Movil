@@ -162,7 +162,12 @@ fun SettingsSheet(homeName: String, onChangeHome: () -> Unit, onDismiss: () -> U
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(
-                            if (BuildConfig.DEMO_PUBLIC_READ) "Lectura pública, sin inicio de sesión" else "ID: ${userId.take(8)}...${userId.takeLast(4)}",
+                            if (BuildConfig.DEMO_PUBLIC_READ) {
+                                "Lectura pública, sin inicio de sesión · Cierre de alertas: " +
+                                    if (deps.container.resolveAlert != null) "habilitado" else "no disponible en este APK"
+                            } else {
+                                "ID: ${userId.take(8)}...${userId.takeLast(4)}"
+                            },
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.textSecondary,
                         )

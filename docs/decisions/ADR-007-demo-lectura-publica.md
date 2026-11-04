@@ -38,3 +38,9 @@
   legible con la clave que va dentro de cualquier APK. Debe cerrarse antes de un uso real.
 - **Retiro:** cuando exista el usuario de pruebas con membresía (B21), se
   elimina el build `demo`, los dos adaptadores `PublicRead*` y la rama `publicRead` del ensamblador.
+
+## Actualización (0.7.1-beta)
+
+El cliente del build `demo` ya **no instala el plugin de autenticación**. Como `debug`, `release` y `demo` comparten `applicationId` y firma, el demo podía
+recargar la sesión guardada por otro build y consultar con el rol `authenticated`; por RLS la lista de domicilios quedaba vacía o reducida. Sin el plugin el demo
+es siempre el rol `anon`. Se parte de una causa probable, no reproducida.

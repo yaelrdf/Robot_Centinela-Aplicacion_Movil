@@ -128,7 +128,11 @@ fun HomeSelectionScreen(onChosen: () -> Unit) {
                 state.homes.isEmpty() -> EmptyState(
                     icon = R.drawable.ic_home,
                     title = "Sin domicilios asignados",
-                    message = "Tu cuenta no tiene membresías activas vinculadas a un domicilio en el servidor.",
+                    message = if (BuildConfig.DEMO_PUBLIC_READ) {
+                        "El servidor no devolvió domicilios para la lectura pública."
+                    } else {
+                        "Tu cuenta no tiene membresías activas vinculadas a un domicilio en el servidor."
+                    },
                     actionLabel = "Reintentar",
                     onAction = vm::load,
                 )

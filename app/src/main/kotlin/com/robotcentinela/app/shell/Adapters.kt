@@ -64,7 +64,7 @@ class Adapters(
             publicRead: Boolean = false,
             demoWriteKey: String? = null,
         ): Adapters {
-            val client = SupabaseClientFactory.create(config)
+            val client = SupabaseClientFactory.create(config, withAuth = !publicRead)
             return Adapters(
                 auth = if (publicRead) PublicReadAuthAdapter() else SupabaseAuthAdapter(client, scope),
                 homeScope = if (publicRead) PublicReadHomeScopeAdapter(client) else SupabaseHomeScopeAdapter(client),
