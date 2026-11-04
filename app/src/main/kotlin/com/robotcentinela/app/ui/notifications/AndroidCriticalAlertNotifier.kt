@@ -52,15 +52,15 @@ class AndroidCriticalAlertNotifier(
     private var soundJob: Job? = null
 
     init {
-        ensureHighPriorityChannel()
+        ensureNotificationChannels()
     }
 
     /**
-     * Crea o actualiza el canal de notificaciones con nivel de importancia `IMPORTANCE_HIGH`
-     * para que el sistema muestre banner emergente (heads-up), ícono en barra de estado,
-     * sonido de alarma, vibración y luz de notificación.
+     * Crea o actualiza los canales de notificaciones:
+     * - Canal de alta prioridad para alertas críticas (sonido alarma, vibración intensa y luces).
+     * - Canal estándar para alertas informativas y advertencias (batería baja, calibración, etc.).
      */
-    private fun ensureHighPriorityChannel() {
+    private fun ensureNotificationChannels() {
         val manager = appContext.getSystemService(NotificationManager::class.java) ?: return
         val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -69,7 +69,7 @@ class AndroidCriticalAlertNotifier(
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
-        val channel = NotificationChannel(
+        val criticalChannel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
             NotificationManager.IMPORTANCE_HIGH,
@@ -85,7 +85,23 @@ class AndroidCriticalAlertNotifier(
                 setSound(alarmUri, audioAttributes)
             }
         }
-        manager.createNotificationChannel(channel)
+
+        val standardChannel = NotificationChannel(
+            CHANNEL_STANDARD_ID,
+            CHANNEL_STANDARD_NAME,
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            description = "Notificaciones de estado operativo, advertencias del robot (batería, calibración) y eventos informativos."
+            enableLights(true)
+            lightColor = WARNING_COLOR_ARGB
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+
+        manager.createNotificationChannels(listOf(criticalChannel, standardChannel))
+    }
+
+    private fun ensureHighPriorityChannel() {
+        ensureNotificationChannels()
     }
 
     override fun showHighPriorityNotification(payload: CriticalAlertNotificationPayload) {
@@ -169,6 +185,83 @@ class AndroidCriticalAlertNotifier(
 
         if (!payload.preferences.soundEnabled) {
             builder.setSilent(true)
+        }
+
+        runCatching {
+            NotificationManagerCompat.from(appContext).notify(NOTIFICATION_ID, builder.build())
+        }
+    }
+
+    override fun showStandardNotification(payload: CriticalAlertNotificationPayload) {
+        if (!canPostNotifications(appContext)) return
+        ensureNotificationChannels()
+
+        val openAppIntent = Intent(appContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(CriticalAlertActionReceiver.EXTRA_ALERT_ID, payload.alertId.value.toString())
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            appContext,
+            REQUEST_CODE_OPEN_APP,
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val dismissIntent = Intent(appContext, CriticalAlertActionReceiver::class.java).apply {
+            action = CriticalAlertActionReceiver.ACTION_DISMISS_CRITICAL_ALERT
+            putExtra(CriticalAlertActionReceiver.EXTRA_ALERT_ID, payload.alertId.value.toString())
+        }
+        val dismissPendingIntent = PendingIntent.getBroadcast(
+            appContext,
+            REQUEST_CODE_DISMISS_ALERT,
+            dismissIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val expandedText = buildString {
+            append(payload.body)
+            append("\nLa alerta permanece abierta en el sistema. ")
+            if (payload.canResolve) {
+                append("Toca para abrir V.I.S.O.R., usa «Descartar» para quitar el aviso ")
+                append("o «Resolver alerta» para cerrarla en el servidor.")
+            } else {
+                append("Toca para abrir V.I.S.O.R. o usa «Descartar» para quitar el aviso.")
+            }
+        }
+
+        val builder = NotificationCompat.Builder(appContext, CHANNEL_STANDARD_ID)
+            .setSmallIcon(R.drawable.ic_warning)
+            .setContentTitle(payload.title)
+            .setContentText(payload.body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(expandedText))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setColor(WARNING_COLOR_ARGB)
+            .setOngoing(false)
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(payload.shouldAlertOnce)
+            .setContentIntent(contentPendingIntent)
+            .addAction(
+                R.drawable.ic_close,
+                "Descartar",
+                dismissPendingIntent,
+            )
+
+        val robotId = payload.robotId
+        if (payload.canResolve && robotId != null) {
+            val resolveIntent = Intent(appContext, CriticalAlertActionReceiver::class.java).apply {
+                action = CriticalAlertActionReceiver.ACTION_RESOLVE_CRITICAL_ALERT
+                putExtra(CriticalAlertActionReceiver.EXTRA_ALERT_ID, payload.alertId.value.toString())
+                putExtra(CriticalAlertActionReceiver.EXTRA_ROBOT_ID, robotId.value.toString())
+            }
+            val resolvePendingIntent = PendingIntent.getBroadcast(
+                appContext,
+                REQUEST_CODE_RESOLVE_ALERT,
+                resolveIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            builder.addAction(R.drawable.ic_check_circle, "Resolver alerta", resolvePendingIntent)
         }
 
         runCatching {
@@ -282,12 +375,15 @@ class AndroidCriticalAlertNotifier(
     companion object {
         const val CHANNEL_ID = "visor_critical_alerts_high_v1"
         const val CHANNEL_NAME = "Alertas Críticas del Robot"
+        const val CHANNEL_STANDARD_ID = "visor_standard_alerts_v1"
+        const val CHANNEL_STANDARD_NAME = "Alertas Operativas y Advertencias"
         const val NOTIFICATION_ID = 9001
 
         private const val REQUEST_CODE_OPEN_APP = 101
         private const val REQUEST_CODE_DISMISS_ALERT = 102
         private const val REQUEST_CODE_RESOLVE_ALERT = 103
         private const val CRITICAL_COLOR_ARGB = 0xFFC00000.toInt()
+        private const val WARNING_COLOR_ARGB = 0xFFD97706.toInt()
         private const val SOUND_DURATION_MS = 3_500L
         private const val FLASH_PULSES = 4
         private const val FLASH_ON_MS = 220L

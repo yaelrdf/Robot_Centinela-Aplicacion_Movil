@@ -4,12 +4,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
@@ -18,16 +21,24 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.robotcentinela.app.R
 import com.robotcentinela.app.incidents.domain.Alert
@@ -144,47 +155,91 @@ fun AlertDetailSheet(
     error: String? = null,
 ) {
     val colors = CentinelaTheme.colors
+    val clipboardManager = LocalClipboardManager.current
+    var copied by remember { mutableStateOf(false) }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = colors.surface,
         contentColor = colors.textPrimary,
     ) {
         Column(
-            Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.xl).padding(bottom = Spacing.xl).navigationBarsPadding(),
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = Spacing.xl)
+                .padding(bottom = Spacing.xl)
+                .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
-            Text(
-                OperationPresentation.alertTitle(alert.type),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                StatusBadge(OperationPresentation.severity(alert.severity))
-                StatusBadge(OperationPresentation.state(alert.state))
+            SelectionContainer {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    Text(
+                        OperationPresentation.alertTitle(alert.type),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.semantics { heading() },
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                        StatusBadge(OperationPresentation.severity(alert.severity))
+                        StatusBadge(OperationPresentation.state(alert.state))
+                    }
+                    DetailRow("ID del evento", alert.id.value.toString())
+                    DetailRow("Origen", OperationPresentation.origin(alert.origin))
+                    DetailRow("Inicio", Formats.dateTimeSeconds(alert.openedAt, zone))
+                    DetailRow("Última ocurrencia", Formats.dateTimeSeconds(alert.lastSeenAt, zone))
+                    DetailRow("Cierre", alert.resolvedAt?.let { Formats.dateTimeSeconds(it, zone) } ?: "Sin cerrar")
+                    val rule = alert.ruleId
+                    DetailRow("Regla", if (rule != null) "Regla versionada del servidor (${rule.value})" else "Sin regla (evento del dispositivo)")
+                }
             }
-            DetailRow("Origen", OperationPresentation.origin(alert.origin))
-            DetailRow("Inicio", Formats.dateTimeSeconds(alert.openedAt, zone))
-            DetailRow("Última ocurrencia", Formats.dateTimeSeconds(alert.lastSeenAt, zone))
-            DetailRow("Cierre", alert.resolvedAt?.let { Formats.dateTimeSeconds(it, zone) } ?: "Sin cerrar")
-            DetailRow("Regla", if (alert.ruleId != null) "Regla versionada del servidor" else "Sin regla (evento del dispositivo)")
-            if (onResolve != null && alert.isResolvable()) {
-                Button(
-                    onClick = { onResolve(alert) },
-                    enabled = !resolving,
+
+            // Acciones: Resolver alerta y Copiar información
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        val summaryText = buildString {
+                            appendLine("Evento: ${OperationPresentation.alertTitle(alert.type)}")
+                            appendLine("Severidad: ${OperationPresentation.severity(alert.severity).text}")
+                            appendLine("Estado: ${OperationPresentation.state(alert.state).text}")
+                            appendLine("ID: ${alert.id.value}")
+                            appendLine("Origen: ${OperationPresentation.origin(alert.origin)}")
+                            appendLine("Inicio: ${Formats.dateTimeSeconds(alert.openedAt, zone)}")
+                            appendLine("Última ocurrencia: ${Formats.dateTimeSeconds(alert.lastSeenAt, zone)}")
+                            appendLine("Cierre: ${alert.resolvedAt?.let { Formats.dateTimeSeconds(it, zone) } ?: "Sin cerrar"}")
+                        }
+                        clipboardManager.setText(AnnotatedString(summaryText))
+                        copied = true
+                    },
                     shape = CentinelaShapes.control,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = CentinelaShapes.minTouchTarget),
+                    modifier = Modifier.weight(1f).heightIn(min = CentinelaShapes.minTouchTarget),
                 ) {
-                    if (resolving) {
-                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                    } else {
-                        Text("Resolver alerta")
+                    AppIcon(if (copied) R.drawable.ic_check else R.drawable.ic_assignment, size = 18.dp, tint = colors.textPrimary)
+                    Spacer(Modifier.width(Spacing.xs))
+                    Text(if (copied) "¡Copiado!" else "Copiar info")
+                }
+
+                if (onResolve != null && alert.isResolvable()) {
+                    Button(
+                        onClick = { onResolve(alert) },
+                        enabled = !resolving,
+                        shape = CentinelaShapes.control,
+                        modifier = Modifier.weight(1f).heightIn(min = CentinelaShapes.minTouchTarget),
+                    ) {
+                        if (resolving) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text("Resolver alerta")
+                        }
                     }
                 }
-                if (error != null) {
-                    Text(error, style = MaterialTheme.typography.bodySmall, color = colors.critical)
-                }
             }
+
+            if (error != null) {
+                Text(error, style = MaterialTheme.typography.bodySmall, color = colors.critical)
+            }
+
             HorizontalDivider(color = colors.border)
             Text("Evidencia", style = MaterialTheme.typography.titleSmall)
             Text(

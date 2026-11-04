@@ -46,6 +46,8 @@ data class CriticalAlertNotificationPayload(
     val robotId: RobotId? = null,
     /** `true` si esta sesión puede resolver alertas (ADR-011): la notificación añade la acción «Resolver alerta». */
     val canResolve: Boolean = false,
+    /** `true` si la alerta es de severidad crítica/alta (dispara alarma sensorial y prioridad HIGH). */
+    val isCritical: Boolean = true,
 )
 
 /**
@@ -53,6 +55,9 @@ data class CriticalAlertNotificationPayload(
  */
 interface CriticalAlertGateway {
     fun showHighPriorityNotification(payload: CriticalAlertNotificationPayload)
+    fun showStandardNotification(payload: CriticalAlertNotificationPayload) {
+        showHighPriorityNotification(payload)
+    }
     fun cancelNotification(alertId: AlertId? = null)
     fun triggerSensoryAlert(preferences: CriticalAlertPreferences)
     fun stopSensoryAlert()
@@ -138,11 +143,10 @@ class CriticalAlertCoordinator(
         inBackground: Boolean,
         preferences: CriticalAlertPreferences = CriticalAlertPreferences(),
     ) {
-        val candidate = openAlerts.firstOrNull { alert ->
-            alert.state == AlertState.Open &&
-                OperationPresentation.isHighSeverity(alert) &&
-                alert.id !in dismissedIds
-        }
+        val activeNotDismissed = openAlerts.filter { it.state == AlertState.Open && it.id !in dismissedIds }
+        // Se prioriza la alerta crítica más relevante; si no hay críticas, se atiende la no crítica (warning / info).
+        val criticalCandidate = activeNotDismissed.firstOrNull { OperationPresentation.isHighSeverity(it) }
+        val candidate = criticalCandidate ?: activeNotDismissed.firstOrNull()
 
         if (candidate == null) {
             if (activeAlertId != null) {
@@ -156,9 +160,10 @@ class CriticalAlertCoordinator(
             return
         }
 
+        val isCritical = OperationPresentation.isHighSeverity(candidate)
         val isNewIncident = candidate.id != lastNotifiedAlertId
         val hasNewOccurrence = lastNotifiedSeenAt == null || candidate.lastSeenAt.isAfter(lastNotifiedSeenAt)
-        val shouldTriggerSensory = isNewIncident || hasNewOccurrence
+        val shouldTriggerSensory = isCritical && (isNewIncident || hasNewOccurrence)
         val transitionedToBackground = inBackground && !lastBackgroundState
 
         // Solo re-emite la notificación si es un nuevo incidente, nueva ocurrencia o transición a segundo plano.
@@ -177,17 +182,23 @@ class CriticalAlertCoordinator(
                 originLabel = originLabel,
                 openedAt = candidate.openedAt,
                 lastSeenAt = candidate.lastSeenAt,
-                persistent = true,
+                persistent = isCritical,
                 shouldAlertOnce = !shouldTriggerSensory,
                 preferences = preferences,
                 robotId = candidate.robotId,
                 canResolve = canResolve,
+                isCritical = isCritical,
             )
 
-            gateway.showHighPriorityNotification(payload)
-
-            if (shouldTriggerSensory) {
-                gateway.triggerSensoryAlert(preferences)
+            if (isCritical) {
+                gateway.showHighPriorityNotification(payload)
+                if (shouldTriggerSensory) {
+                    gateway.triggerSensoryAlert(preferences)
+                }
+            } else {
+                // Alertas no críticas no activan sonido continuo ni flash estroboscópico
+                gateway.stopSensoryAlert()
+                gateway.showStandardNotification(payload)
             }
         }
 

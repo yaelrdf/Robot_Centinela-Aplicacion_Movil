@@ -24,6 +24,7 @@ class CriticalAlertCoordinatorTest {
 
     private class FakeCriticalAlertGateway : CriticalAlertGateway {
         val notifications = mutableListOf<CriticalAlertNotificationPayload>()
+        val standardNotifications = mutableListOf<CriticalAlertNotificationPayload>()
         val cancelledIds = mutableListOf<AlertId?>()
         val sensoryTriggers = mutableListOf<CriticalAlertPreferences>()
         var stopSensoryCount = 0
@@ -31,6 +32,11 @@ class CriticalAlertCoordinatorTest {
 
         override fun showHighPriorityNotification(payload: CriticalAlertNotificationPayload) {
             notifications += payload
+            activePayload = payload
+        }
+
+        override fun showStandardNotification(payload: CriticalAlertNotificationPayload) {
+            standardNotifications += payload
             activePayload = payload
         }
 
@@ -99,7 +105,7 @@ class CriticalAlertCoordinatorTest {
     }
 
     @Test
-    fun `alertas informativas o de advertencia no disparan la alarma critica`() {
+    fun `alertas informativas o de advertencia no disparan alarma sensorial pero generan notificacion estandar`() {
         val gateway = FakeCriticalAlertGateway()
         val coordinator = CriticalAlertCoordinator(gateway)
         val warningAlert = makeAlert(idSuffix = 2, severity = "warning", type = "battery_low")
@@ -113,9 +119,18 @@ class CriticalAlertCoordinatorTest {
             inBackground = true,
         )
 
+        // No dispara notificación de canal crítico ni sensorial
         assertTrue(gateway.notifications.isEmpty())
         assertTrue(gateway.sensoryTriggers.isEmpty())
-        assertNull(gateway.activePayload)
+        // Genera notificación en canal estándar para la alerta activa
+        assertEquals(1, gateway.standardNotifications.size)
+        val payload = gateway.standardNotifications.first()
+        assertEquals(warningAlert.id, payload.alertId)
+        assertFalse(payload.persistent, "La notificación estándar no debe ser persistente forzosa")
+        assertFalse(payload.isCritical)
+        assertTrue(payload.title.contains("Advertencia"))
+        assertTrue(payload.title.contains("Batería baja"))
+        assertNotNull(gateway.activePayload)
     }
 
     @Test

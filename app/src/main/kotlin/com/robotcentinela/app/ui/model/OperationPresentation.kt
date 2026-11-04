@@ -158,15 +158,24 @@ object OperationPresentation {
         is AlertState.Unknown -> StatusLabel(state.raw, StatusTone.Neutral, StatusIcon.Unknown)
     }
 
-    fun alertTitle(type: String): String = when (type) {
+    fun alertTitle(type: String): String = when (type.lowercase()) {
         "calibration_pending" -> "Calibración pendiente"
         "gas_signal_high" -> "Señal de gas elevada"
         "sensor_fault" -> "Falla de sensor"
         "ingest_interrupted" -> "Ingesta interrumpida"
-        "battery_low" -> "Batería baja"
+        "battery_low", "low_battery" -> "Batería baja"
+        "battery_critical" -> "Batería crítica"
         "station_skipped" -> "Estación omitida"
         "mission_stopped" -> "Misión detenida localmente"
         "edge_risk" -> "Riesgo de borde"
+        "connectivity_lost", "offline" -> "Conexión perdida"
+        "temperature_high" -> "Temperatura elevada"
+        "humidity_high" -> "Humedad elevada"
+        "system_fault" -> "Falla del sistema"
+        "fall_detected" -> "Caída detectada"
+        "flame_detected" -> "Flama detectada"
+        "smoke_detected" -> "Humo detectado"
+        "obstacle_blocked" -> "Obstáculo bloqueante"
         else -> type.replace('_', ' ').replaceFirstChar { it.uppercase() }
     }
 
