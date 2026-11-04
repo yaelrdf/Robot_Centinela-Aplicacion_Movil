@@ -48,7 +48,7 @@ Estado real del proyecto Supabase al decidir:
   servidor responde que no tiene permiso.
 - **Riesgo aceptado y temporal de la clave de escritura del demo.** Esa clave se salta RLS y cualquiera que tenga el APK `demo`
   que la lleva puede extraerla. Por eso: no se escribe en archivos versionados, no existe en `release` ni `debug`, el APK `demo`
-  con clave **sí se adjuntó a la release pública `v0.7.1-beta`** por decisión del equipo (antes, en la 0.7.0-beta, se publicó sin clave y el botón
-  no aparecía) y **debe revocarse en Supabase al terminar la demostración**. La validación
+  con clave **no se adjunta a la release pública `v0.7.1-beta`** (se entrega por un canal privado; el equipo quiso adjuntarlo, pero la subida quedó bloqueada
+  y se optó por no exponerlo; el demo público de la 0.7.0-beta no tiene botón) y **debe revocarse en Supabase al terminar la demostración**. La validación
   `SupabaseConfig` sigue rechazando claves privilegiadas como clave de lectura.
 - Reversión del backend: `drop function public.resolve_alert(uuid);`.
